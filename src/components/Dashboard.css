@@ -1,0 +1,398 @@
+/* DIYDash Dashboard Component Styles */
+
+.dashboard {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--diy-spacing-xl);
+  min-height: 100vh;
+  background-color: var(--diy-bg-secondary);
+}
+
+/* Dashboard Header Styles */
+.dashboard-header {
+  text-align: center;
+  margin-bottom: var(--diy-spacing-2xl);
+  padding: var(--diy-spacing-xl) 0;
+  position: relative;
+}
+
+.dashboard-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 4px;
+  background: linear-gradient(90deg, var(--diy-primary) 0%, var(--diy-primary-light) 100%);
+  border-radius: var(--diy-radius-sm);
+}
+
+.dashboard-title {
+  font-size: var(--diy-font-size-4xl);
+  font-weight: 700;
+  color: var(--diy-text-primary);
+  margin-bottom: var(--diy-spacing-sm);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+  position: relative;
+  display: inline-block;
+}
+
+.dashboard-title::after {
+  content: '🔨';
+  position: absolute;
+  top: -10px;
+  right: -30px;
+  font-size: 1.5rem;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-10px);
+  }
+  60% {
+    transform: translateY(-5px);
+  }
+}
+
+.dashboard-subtitle {
+  font-size: var(--diy-font-size-xl);
+  color: var(--diy-text-muted);
+  margin: 0;
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* Dashboard Content Layout */
+.dashboard-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--diy-spacing-xl);
+}
+
+/* Welcome Section Styles */
+.welcome-section {
+  background: var(--diy-bg-accent);
+  padding: var(--diy-spacing-2xl);
+  border-radius: var(--diy-radius-lg);
+  box-shadow: var(--diy-shadow-lg);
+  text-align: center;
+  position: relative;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.welcome-section::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  background: linear-gradient(45deg, var(--diy-primary), var(--diy-accent), var(--diy-primary-light));
+  border-radius: var(--diy-radius-lg);
+  z-index: -1;
+}
+
+.welcome-section h2 {
+  color: var(--diy-text-primary);
+  margin-bottom: var(--diy-spacing-lg);
+  font-size: var(--diy-font-size-3xl);
+  font-weight: 600;
+  position: relative;
+}
+
+.welcome-section h2::before {
+  content: '⚡';
+  margin-right: var(--diy-spacing-sm);
+  color: var(--diy-primary);
+}
+
+.welcome-section p {
+  color: var(--diy-text-secondary);
+  font-size: var(--diy-font-size-lg);
+  line-height: 1.7;
+  max-width: 700px;
+  margin: 0 auto;
+  font-weight: 400;
+}
+
+/* Features Preview Grid */
+.features-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--diy-spacing-lg);
+  margin-top: var(--diy-spacing-lg);
+}
+
+/* Feature Card Styles with DIY Aesthetic */
+.feature-card {
+  background: var(--diy-bg-primary);
+  padding: var(--diy-spacing-xl);
+  border-radius: var(--diy-radius-md);
+  box-shadow: var(--diy-shadow-md);
+  border-left: 5px solid var(--diy-primary);
+  transition: all var(--diy-transition-base);
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 0 20px 20px 0;
+  border-color: transparent var(--diy-gray-100) transparent transparent;
+  transition: border-color var(--diy-transition-base);
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--diy-shadow-xl);
+  border-left-color: var(--diy-primary-light);
+}
+
+.feature-card:hover::before {
+  border-color: transparent var(--diy-primary-light) transparent transparent;
+}
+
+.feature-card:nth-child(1) {
+  border-left-color: var(--diy-primary);
+}
+
+.feature-card:nth-child(2) {
+  border-left-color: var(--diy-accent);
+}
+
+.feature-card:nth-child(3) {
+  border-left-color: var(--diy-secondary);
+}
+
+.feature-card h3 {
+  color: var(--diy-text-primary);
+  margin-bottom: var(--diy-spacing-md);
+  font-size: var(--diy-font-size-xl);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--diy-spacing-sm);
+}
+
+.feature-card h3::before {
+  font-size: 1.5em;
+  line-height: 1;
+}
+
+.feature-card p {
+  color: var(--diy-text-secondary);
+  margin: 0;
+  line-height: 1.6;
+  font-size: var(--diy-font-size-base);
+}
+
+/* DIY Tool Icons Animation */
+.feature-card:nth-child(1) h3::before {
+  content: '🔨';
+  animation: hammer 3s ease-in-out infinite;
+}
+
+.feature-card:nth-child(2) h3::before {
+  content: '📋';
+  animation: clipboard 2s ease-in-out infinite;
+}
+
+.feature-card:nth-child(3) h3::before {
+  content: '🛠️';
+  animation: tools 2.5s ease-in-out infinite;
+}
+
+@keyframes hammer {
+  0%, 100% { transform: rotate(0deg); }
+  25% { transform: rotate(-15deg); }
+  75% { transform: rotate(15deg); }
+}
+
+@keyframes clipboard {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes tools {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+
+/* Responsive Design - Mobile First */
+
+/* Small devices (landscape phones, 576px and up) */
+@media (min-width: 576px) {
+  .dashboard {
+    padding: var(--diy-spacing-xl) var(--diy-spacing-lg);
+  }
+  
+  .features-preview {
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+}
+
+/* Medium devices (tablets, 768px and up) */
+@media (min-width: 768px) {
+  .dashboard-title {
+    font-size: 3.5rem;
+  }
+  
+  .dashboard-subtitle {
+    font-size: var(--diy-font-size-2xl);
+  }
+  
+  .welcome-section {
+    padding: var(--diy-spacing-2xl) var(--diy-spacing-xl);
+  }
+  
+  .features-preview {
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+}
+
+/* Large devices (desktops, 992px and up) */
+@media (min-width: 992px) {
+  .dashboard {
+    padding: var(--diy-spacing-2xl);
+  }
+  
+  .features-preview {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Mobile-specific styles (max-width: 575.98px) */
+@media (max-width: 575.98px) {
+  .dashboard {
+    padding: var(--diy-spacing-md);
+  }
+  
+  .dashboard-header {
+    margin-bottom: var(--diy-spacing-xl);
+    padding: var(--diy-spacing-lg) 0;
+  }
+  
+  .dashboard-title {
+    font-size: var(--diy-font-size-3xl);
+  }
+  
+  .dashboard-title::after {
+    right: -20px;
+    font-size: 1.2rem;
+  }
+  
+  .dashboard-subtitle {
+    font-size: var(--diy-font-size-lg);
+  }
+  
+  .welcome-section {
+    padding: var(--diy-spacing-lg);
+  }
+  
+  .welcome-section h2 {
+    font-size: var(--diy-font-size-2xl);
+  }
+  
+  .welcome-section p {
+    font-size: var(--diy-font-size-base);
+  }
+  
+  .features-preview {
+    grid-template-columns: 1fr;
+    gap: var(--diy-spacing-md);
+  }
+  
+  .feature-card {
+    padding: var(--diy-spacing-lg);
+  }
+  
+  .feature-card h3 {
+    font-size: var(--diy-font-size-lg);
+  }
+}
+
+/* Extra small devices (max-width: 480px) */
+@media (max-width: 480px) {
+  .dashboard {
+    padding: var(--diy-spacing-sm);
+  }
+  
+  .dashboard-title {
+    font-size: var(--diy-font-size-2xl);
+  }
+  
+  .dashboard-subtitle {
+    font-size: var(--diy-font-size-base);
+  }
+  
+  .welcome-section h2 {
+    font-size: var(--diy-font-size-xl);
+  }
+  
+  .feature-card {
+    padding: var(--diy-spacing-md);
+  }
+}
+
+/* Accessibility and Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  .dashboard-title::after,
+  .feature-card h3::before {
+    animation: none;
+  }
+  
+  .feature-card {
+    transition: none;
+  }
+  
+  .feature-card:hover {
+    transform: none;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .dashboard-title {
+    text-shadow: none;
+  }
+  
+  .feature-card {
+    border: 2px solid var(--diy-text-primary);
+  }
+  
+  .welcome-section {
+    border: 2px solid var(--diy-text-primary);
+  }
+}
+
+/* Print styles */
+@media print {
+  .dashboard {
+    background-color: white !important;
+    color: black !important;
+  }
+  
+  .feature-card,
+  .welcome-section {
+    box-shadow: none !important;
+    border: 1px solid #ccc !important;
+  }
+  
+  .dashboard-title::after,
+  .feature-card h3::before {
+    display: none;
+  }
+}
