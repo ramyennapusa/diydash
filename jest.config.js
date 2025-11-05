@@ -15,5 +15,8 @@ export default {
     'src/**/*.{js,jsx}',
     '!src/main.jsx',
     '!src/**/*.test.{js,jsx}'
-  ]
+  ],
+  testEnvironmentOptions: {
+    customExportConditions: [''],
+  }
 }

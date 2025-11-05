@@ -1,6 +1,13 @@
+import { useNavigate } from 'react-router-dom'
 import './ProjectCard.css'
 
 function ProjectCard({ project }) {
+  const navigate = useNavigate()
+
+  const handleCardClick = () => {
+    navigate(`/project/${project.id}`)
+  }
+
   const formatDate = (date) => {
     return new Date(date).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -23,7 +30,7 @@ function ProjectCard({ project }) {
   }
 
   return (
-    <div className="project-card">
+    <div className="project-card" onClick={handleCardClick}>
       <div className="project-card-image">
         <img 
           src={project.image} 
