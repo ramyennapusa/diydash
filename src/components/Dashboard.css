@@ -117,8 +117,19 @@
   font-size: var(--diy-font-size-lg);
   line-height: 1.7;
   max-width: 700px;
-  margin: 0 auto;
+  margin: 0 auto var(--diy-spacing-lg) auto;
   font-weight: 400;
+}
+
+.dashboard-actions {
+  margin-top: var(--diy-spacing-lg);
+}
+
+.dashboard-actions .btn {
+  font-size: var(--diy-font-size-lg);
+  padding: var(--diy-spacing-md) var(--diy-spacing-xl);
+  text-decoration: none;
+  display: inline-block;
 }
 
 /* Features Preview Grid */
@@ -193,9 +204,32 @@
 
 .feature-card p {
   color: var(--diy-text-secondary);
-  margin: 0;
+  margin: 0 0 var(--diy-spacing-md) 0;
   line-height: 1.6;
   font-size: var(--diy-font-size-base);
+}
+
+.feature-link {
+  display: inline-block;
+  color: var(--diy-primary);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: var(--diy-font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: color var(--diy-transition-base);
+}
+
+.feature-link:hover {
+  color: var(--diy-primary-dark);
+}
+
+.feature-link.coming-soon {
+  color: var(--diy-text-muted);
+  cursor: default;
+  font-style: italic;
+  text-transform: none;
+  letter-spacing: normal;
 }
 
 /* DIY Tool Icons Animation */
