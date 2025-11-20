@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import mockProjectDetails from '../data/mockProjectDetails'
+import apiClient from '../services/api'
 import ProjectPictures from './ProjectPictures'
 import ProjectTasks from './ProjectTasks'
 import ProjectVideos from './ProjectVideos'
@@ -16,27 +16,28 @@ const ProjectDetails = () => {
   const [activeTab, setActiveTab] = useState('pictures')
 
   useEffect(() => {
-    // Simulate API call with loading delay
     const fetchProject = async () => {
       try {
         setLoading(true)
-        // Simulate network delay
-        await new Promise(resolve => setTimeout(resolve, 500))
+        setError(null)
         
-        const projectData = mockProjectDetails[id]
+        const projectData = await apiClient.getProject(id)
         if (!projectData) {
           setError('Project not found')
         } else {
           setProject(projectData)
         }
       } catch (err) {
-        setError('Failed to load project details')
+        console.error('Failed to load project details:', err)
+        setError(err.message || 'Failed to load project details')
       } finally {
         setLoading(false)
       }
     }
 
-    fetchProject()
+    if (id) {
+      fetchProject()
+    }
   }, [id])
 
   const handleBackToProjects = () => {
@@ -168,13 +169,13 @@ const ProjectDetails = () => {
         </nav>
 
         <div className="tab-content">
-          {activeTab === 'pictures' && <ProjectPictures pictures={project.pictures} />}
-          {activeTab === 'tasks' && <ProjectTasks tasks={project.tasks} />}
-          {activeTab === 'videos' && <ProjectVideos videos={project.videos} />}
+          {activeTab === 'pictures' && <ProjectPictures pictures={project.pictures || []} />}
+          {activeTab === 'tasks' && <ProjectTasks tasks={project.tasks || []} />}
+          {activeTab === 'videos' && <ProjectVideos videos={project.videos || []} />}
           {activeTab === 'materials' && (
             <ProjectMaterials 
-              materials={project.materials} 
-              tools={project.tools} 
+              materials={project.materials || []} 
+              tools={project.tools || []} 
             />
           )}
         </div>
