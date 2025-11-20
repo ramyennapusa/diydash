@@ -1,6 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import './ProjectCard.css'
 
+const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400&h=300&fit=crop'
+
 function ProjectCard({ project }) {
   const navigate = useNavigate()
 
@@ -29,14 +31,19 @@ function ProjectCard({ project }) {
     }
   }
 
+  // Use default image if no image is provided or if image is empty string
+  const imageUrl = project.image && project.image.trim() !== '' 
+    ? project.image 
+    : DEFAULT_PROJECT_IMAGE
+
   return (
     <div className="project-card" onClick={handleCardClick}>
       <div className="project-card-image">
         <img 
-          src={project.image} 
+          src={imageUrl} 
           alt={project.title}
           onError={(e) => {
-            e.target.src = 'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400&h=300&fit=crop'
+            e.target.src = DEFAULT_PROJECT_IMAGE
           }}
         />
         <div className={`project-status ${getStatusColor(project.status)}`}>

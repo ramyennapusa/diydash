@@ -3,9 +3,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background-color: #2c3e50;
-  color: white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #f9fafb;
+  color: #000000;
+  border-bottom: 1px solid #e5e7eb;
 }
 
 .nav-content {
@@ -21,9 +21,9 @@
 
 .nav-brand h1 {
   margin: 0;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: #e67e22;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: #000000;
 }
 
 .nav-links {
@@ -55,27 +55,27 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
-  color: #bdc3c7;
+  color: #000000;
 }
 
 .breadcrumb-link {
-  color: #3498db;
+  color: #000000;
   text-decoration: none;
-  transition: color 0.3s ease;
+  transition: opacity 0.2s ease;
 }
 
 .breadcrumb-link:hover {
-  color: #2980b9;
-  text-decoration: underline;
+  opacity: 0.7;
+  text-decoration: none;
 }
 
 .breadcrumb-separator {
-  color: #7f8c8d;
-  font-weight: bold;
+  color: #000000;
+  font-weight: 400;
 }
 
 .breadcrumb-current {
-  color: white;
+  color: #000000;
   font-weight: 500;
   max-width: 200px;
   overflow: hidden;

@@ -41,21 +41,6 @@ function Navigation() {
       
       <div className="nav-content">
         {renderBreadcrumb()}
-        
-        <div className="nav-links">
-          <Link 
-            to="/" 
-            className={`nav-link ${location.pathname === '/' ? 'active' : ''}`}
-          >
-            Projects
-          </Link>
-          <Link 
-            to="/dashboard" 
-            className={`nav-link ${location.pathname === '/dashboard' ? 'active' : ''}`}
-          >
-            Dashboard
-          </Link>
-        </div>
       </div>
     </nav>
   )

@@ -30,8 +30,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   
   /* Use DIYDash color scheme */
-  background-color: #f8f9fa;
-  color: #2c3e50;
+  background-color: #f9fafb;
+  color: #000000;
 }
 
 /* Typography Base Styles */
@@ -39,7 +39,7 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   line-height: 1.2;
   margin-bottom: 0.5em;
-  color: #2c3e50;
+  color: #000000;
 }
 
 h1 {
@@ -68,7 +68,7 @@ h6 {
 
 p {
   margin-bottom: 1rem;
-  color: #5a6c7d;
+  color: #000000;
 }
 
 /* Link Styles */
@@ -97,7 +97,7 @@ ul, ol {
 
 li {
   margin-bottom: 0.25rem;
-  color: #5a6c7d;
+  color: #000000;
 }
 
 /* Form Elements Base Styles */
