@@ -12,6 +12,7 @@ function ProjectsList() {
   const [error, setError] = useState(null)
   const [filterStatus, setFilterStatus] = useState('All')
   const [sortBy, setSortBy] = useState('newest')
+  const [searchQuery, setSearchQuery] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
 
@@ -24,6 +25,16 @@ function ProjectsList() {
   // Filter and sort projects
   const filteredAndSortedProjects = useMemo(() => {
     let filtered = projects
+
+    // Apply search filter
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase().trim()
+      filtered = filtered.filter(project => {
+        const title = (project.title || '').toLowerCase()
+        const description = (project.description || '').toLowerCase()
+        return title.includes(query) || description.includes(query)
+      })
+    }
 
     // Apply status filter
     if (filterStatus !== 'All') {
@@ -45,7 +56,7 @@ function ProjectsList() {
     })
 
     return sorted
-  }, [projects, filterStatus, sortBy])
+  }, [projects, filterStatus, sortBy, searchQuery])
 
   // Get project statistics
   const projectStats = useMemo(() => {
@@ -143,41 +154,67 @@ function ProjectsList() {
       {/* Projects Container */}
       <div className="projects-container">
         <div className="controls-group">
-          <button
-            className="btn-create-project"
-            onClick={() => setShowCreateModal(true)}
-            aria-label="Create new project"
-          >
-            <span className="btn-create-icon">+</span>
-            Create Project
-          </button>
-          
-          <div className="control-item">
-            <label htmlFor="status-filter" className="control-label">Filter:</label>
-            <select 
-              id="status-filter"
-              value={filterStatus} 
-              onChange={(e) => setFilterStatus(e.target.value)}
-              className="modern-select"
+          <div className="controls-left">
+            <button
+              className="btn-create-project"
+              onClick={() => setShowCreateModal(true)}
+              aria-label="Create new project"
             >
-              {statuses.map(status => (
-                <option key={status} value={status}>{status}</option>
-              ))}
-            </select>
+              <span className="btn-create-icon">+</span>
+              Create Project
+            </button>
+            
+            <div className="control-item">
+              <label htmlFor="status-filter" className="control-label">Filter:</label>
+              <select 
+                id="status-filter"
+                value={filterStatus} 
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="modern-select"
+              >
+                {statuses.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div className="control-item">
+              <label htmlFor="sort-select" className="control-label">Sort:</label>
+              <select 
+                id="sort-select"
+                value={sortBy} 
+                onChange={(e) => setSortBy(e.target.value)}
+                className="modern-select"
+              >
+                <option value="newest">Newest First</option>
+                <option value="oldest">Oldest First</option>
+                <option value="alphabetical">Alphabetical</option>
+              </select>
+            </div>
           </div>
-          
-          <div className="control-item">
-            <label htmlFor="sort-select" className="control-label">Sort:</label>
-            <select 
-              id="sort-select"
-              value={sortBy} 
-              onChange={(e) => setSortBy(e.target.value)}
-              className="modern-select"
-            >
-              <option value="newest">Newest First</option>
-              <option value="oldest">Oldest First</option>
-              <option value="alphabetical">Alphabetical</option>
-            </select>
+
+          <div className="controls-right">
+            <div className="search-wrapper">
+              <input
+                type="text"
+                id="search-input"
+                placeholder="Search projects..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="search-input"
+              />
+              <span className="search-icon">🔍</span>
+              {searchQuery && (
+                <button
+                  className="search-clear"
+                  onClick={() => setSearchQuery('')}
+                  aria-label="Clear search"
+                  type="button"
+                >
+                  ×
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -191,7 +228,9 @@ function ProjectsList() {
             <div className="empty-state-icon">🔍</div>
             <h3 className="empty-state-title">No projects found</h3>
             <p className="empty-state-text">
-              {filterStatus !== 'All' 
+              {searchQuery.trim() !== ''
+                ? `No projects found matching "${searchQuery}". Try a different search term.`
+                : filterStatus !== 'All' 
                 ? `No projects with status "${filterStatus}" found. Try adjusting your filters.`
                 : 'Ready to start your first DIY adventure? Every great maker starts with a single project!'
               }
