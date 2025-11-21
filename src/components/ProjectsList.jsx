@@ -203,7 +203,6 @@ function ProjectsList() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="search-input"
               />
-              <span className="search-icon">🔍</span>
               {searchQuery && (
                 <button
                   className="search-clear"

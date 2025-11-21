@@ -197,10 +197,7 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
   return (
     <div className="project-pictures">
       <div className="pictures-header">
-        <div>
-          <h3>Project Gallery</h3>
-          <p>View progress photos and reference images for this project</p>
-        </div>
+        <div></div>
         <button 
           className="upload-button"
           onClick={() => setShowUploadForm(true)}

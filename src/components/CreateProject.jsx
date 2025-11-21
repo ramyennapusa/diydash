@@ -8,9 +8,7 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
     title: '',
     description: '',
     image: '',
-    status: 'Planning',
-    difficulty: 'Beginner',
-    estimatedTime: ''
+    status: 'Planning'
   })
   const [previewImage, setPreviewImage] = useState(null)
   const [errors, setErrors] = useState({})
@@ -65,9 +63,6 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
     if (!formData.title.trim()) {
       newErrors.title = 'Title is required'
     }
-    if (!formData.description.trim()) {
-      newErrors.description = 'Description is required'
-    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
@@ -77,10 +72,8 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
     // Prepare project data
     const projectData = {
       title: formData.title.trim(),
-      description: formData.description.trim(),
-      status: formData.status || 'Planning',
-      difficulty: formData.difficulty || 'Beginner',
-      estimatedTime: formData.estimatedTime || ''
+      description: formData.description.trim() || '',
+      status: formData.status || 'Planning'
     }
 
     // Handle image: if it's a data URL (from file upload), extract base64 for S3 upload
@@ -108,9 +101,7 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
           title: '',
           description: '',
           image: '',
-          status: 'Planning',
-          difficulty: 'Beginner',
-          estimatedTime: ''
+          status: 'Planning'
         })
         setPreviewImage(null)
         setErrors({})
@@ -126,9 +117,7 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
       title: '',
       description: '',
       image: '',
-      status: 'Planning',
-      difficulty: 'Beginner',
-      estimatedTime: ''
+      status: 'Planning'
     })
     setPreviewImage(null)
     setErrors({})
@@ -181,41 +170,6 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
             </div>
           </div>
 
-          {/* Image Input Options */}
-          <div className="form-section">
-            <label htmlFor="image-url" className="form-label">
-              Image URL (optional)
-            </label>
-            <input
-              type="url"
-              id="image-url"
-              name="image"
-              value={formData.image}
-              onChange={handleChange}
-              placeholder="https://example.com/image.jpg"
-              className={`form-input ${errors.image ? 'input-error' : ''}`}
-            />
-            <p className="form-hint">
-              Leave empty to use the default image
-            </p>
-          </div>
-
-          <div className="form-section">
-            <label htmlFor="image-upload" className="form-label">
-              Or Upload Image (optional)
-            </label>
-            <input
-              type="file"
-              id="image-upload"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="form-file-input"
-            />
-            <p className="form-hint">
-              Select an image file from your device
-            </p>
-          </div>
-
           {/* Title */}
           <div className="form-section">
             <label htmlFor="title" className="form-label">
@@ -239,7 +193,7 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
           {/* Description */}
           <div className="form-section">
             <label htmlFor="description" className="form-label">
-              Description <span className="required">*</span>
+              Description
             </label>
             <textarea
               id="description"
@@ -249,7 +203,6 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
               placeholder="Describe your project..."
               rows="4"
               className={`form-textarea ${errors.description ? 'input-error' : ''}`}
-              required
             />
             {errors.description && (
               <span className="error-message">{errors.description}</span>
@@ -274,39 +227,24 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
             </select>
           </div>
 
-          {/* Difficulty */}
+          {/* Image Input Options */}
           <div className="form-section">
-            <label htmlFor="difficulty" className="form-label">
-              Difficulty
-            </label>
-            <select
-              id="difficulty"
-              name="difficulty"
-              value={formData.difficulty}
-              onChange={handleChange}
-              className="form-select"
-            >
-              <option value="Beginner">Beginner</option>
-              <option value="Intermediate">Intermediate</option>
-              <option value="Advanced">Advanced</option>
-            </select>
-          </div>
-
-          {/* Estimated Time */}
-          <div className="form-section">
-            <label htmlFor="estimatedTime" className="form-label">
-              Estimated Time (optional)
+            <label htmlFor="image-upload" className="form-label">
+              Upload Image
             </label>
             <input
-              type="text"
-              id="estimatedTime"
-              name="estimatedTime"
-              value={formData.estimatedTime}
-              onChange={handleChange}
-              placeholder="e.g., 4 hours, 2 days"
-              className="form-input"
+              type="file"
+              id="image-upload"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="form-file-input"
             />
+            <p className="form-hint">
+              Select an image file from your device
+            </p>
           </div>
+
+
 
           {/* Form Actions */}
           <div className="form-actions">

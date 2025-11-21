@@ -58,18 +58,6 @@ const ProjectDetails = () => {
     }
   }
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'Beginner':
-        return '#10b981'
-      case 'Intermediate':
-        return '#f59e0b'
-      case 'Advanced':
-        return '#ef4444'
-      default:
-        return '#6b7280'
-    }
-  }
 
   if (loading) {
     return (
@@ -125,15 +113,6 @@ const ProjectDetails = () => {
               style={{ backgroundColor: getStatusColor(project.status) }}
             >
               {project.status}
-            </span>
-            <span 
-              className="difficulty-badge"
-              style={{ backgroundColor: getDifficultyColor(project.difficulty) }}
-            >
-              {project.difficulty}
-            </span>
-            <span className="estimated-time">
-              ⏱️ {project.estimatedTime}
             </span>
           </div>
         </div>
