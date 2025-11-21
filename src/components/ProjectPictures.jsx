@@ -9,6 +9,7 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
   const [showUploadForm, setShowUploadForm] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState(null)
+  const [deletingPictureId, setDeletingPictureId] = useState(null)
   const [uploadFormData, setUploadFormData] = useState({
     file: null,
     caption: '',
@@ -137,6 +138,29 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
     setUploadError(null)
   }
 
+  const handleDeletePicture = async (pictureId) => {
+    if (!window.confirm('Are you sure you want to delete this picture?')) {
+      return
+    }
+
+    try {
+      setDeletingPictureId(pictureId)
+      setUploadError(null)
+      
+      await apiClient.deletePicture(projectId, pictureId)
+      
+      // Refresh project data
+      if (onUpdate) {
+        onUpdate()
+      }
+    } catch (err) {
+      console.error('Failed to delete picture:', err)
+      setUploadError(err.message || 'Failed to delete picture. Please try again.')
+    } finally {
+      setDeletingPictureId(null)
+    }
+  }
+
   const hasPictures = pictures && pictures.length > 0
 
   if (!hasPictures && !showUploadForm) {
@@ -207,12 +231,25 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
                 >
                   🔍 View
                 </button>
+                <button 
+                  className="delete-button"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDeletePicture(picture.id)
+                  }}
+                  disabled={deletingPictureId === picture.id || imageErrors[picture.id]}
+                  title="Delete picture"
+                >
+                  {deletingPictureId === picture.id ? '⏳' : '🗑️'}
+                </button>
               </div>
             </div>
             
-            <div className="picture-info">
-              <p className="picture-caption">{picture.caption}</p>
-            </div>
+            {picture.caption && picture.caption.trim() !== '' && picture.caption.trim() !== 'Uploaded picture' && (
+              <div className="picture-info">
+                <p className="picture-caption">{picture.caption}</p>
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -292,9 +329,11 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
               />
             </div>
             
-            <div className="lightbox-info">
-              <h4 className="lightbox-caption">{selectedImage.caption}</h4>
-            </div>
+            {selectedImage.caption && selectedImage.caption.trim() !== '' && selectedImage.caption.trim() !== 'Uploaded picture' && (
+              <div className="lightbox-info">
+                <h4 className="lightbox-caption">{selectedImage.caption}</h4>
+              </div>
+            )}
           </div>
         </div>
       )}

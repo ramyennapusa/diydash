@@ -23,13 +23,22 @@ class DIYDashAPI {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'API request failed');
+        const errorMessage = data.message || data.error || `API request failed with status ${response.status}`;
+        const error = new Error(errorMessage);
+        error.status = response.status;
+        error.data = data;
+        throw error;
       }
 
       return data;
     } catch (error) {
       console.error('API Error:', error);
-      throw error;
+      // If it's already an Error object, re-throw it
+      if (error instanceof Error) {
+        throw error;
+      }
+      // Otherwise, wrap it in an Error
+      throw new Error(error.message || 'API request failed');
     }
   }
 
@@ -49,7 +58,7 @@ class DIYDashAPI {
     // Prepare the request body
     const requestBody = {
       title: projectData.title,
-      description: projectData.description,
+      description: projectData.description || '',
       status: projectData.status || 'Planning',
       difficulty: projectData.difficulty || 'Beginner',
       estimatedTime: projectData.estimatedTime || '',
@@ -136,7 +145,7 @@ class DIYDashAPI {
         body: JSON.stringify({
           imageData: picture.imageData,
           imageContentType: picture.imageContentType || 'image/jpeg',
-          caption: picture.caption || 'Uploaded picture',
+          caption: picture.caption || '',
           type: picture.type || 'progress',
           id: picture.id,
           order: picture.order
@@ -197,6 +206,13 @@ class DIYDashAPI {
     const project = await this.getProject(projectId);
     const references = [...(project.references || []), reference];
     return this.updateProject(projectId, { references });
+  }
+
+  // Delete picture from project
+  async deletePicture(projectId, pictureId) {
+    const project = await this.getProject(projectId);
+    const pictures = (project.pictures || []).filter(pic => pic.id !== pictureId);
+    return this.updateProject(projectId, { pictures });
   }
 }
 

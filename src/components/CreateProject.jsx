@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './CreateProject.css'
 
-const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400&h=300&fit=crop'
+const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop'
 
 function CreateProject({ onClose, onCreateProject, isCreating = false }) {
   const [formData, setFormData] = useState({
@@ -72,7 +72,7 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
     // Prepare project data
     const projectData = {
       title: formData.title.trim(),
-      description: formData.description.trim() || '',
+      description: (formData.description || '').trim() || '',
       status: formData.status || 'Planning'
     }
 
@@ -176,9 +176,6 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
                 style={{ display: 'none' }}
               />
             </div>
-            <p className="form-hint">
-              Click "Change Image" to upload a custom image
-            </p>
           </div>
 
           {/* Title */}
@@ -235,6 +232,7 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
               <option value="Planning">Planning</option>
               <option value="In Progress">In Progress</option>
               <option value="Completed">Completed</option>
+              <option value="Deleted">Deleted</option>
             </select>
           </div>
 

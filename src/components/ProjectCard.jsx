@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import './ProjectCard.css'
 
-const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400&h=300&fit=crop'
+const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop'
 
 function ProjectCard({ project }) {
   const navigate = useNavigate()
@@ -26,6 +26,8 @@ function ProjectCard({ project }) {
         return 'status-in-progress'
       case 'Planning':
         return 'status-planning'
+      case 'Deleted':
+        return 'status-deleted'
       default:
         return 'status-default'
     }
@@ -53,7 +55,6 @@ function ProjectCard({ project }) {
       
       <div className="project-card-content">
         <h3 className="project-title">{project.title}</h3>
-        <p className="project-description">{project.description}</p>
         <div className="project-meta">
           <span className="project-date">
             Started: {formatDate(project.createdDate)}

@@ -4,27 +4,31 @@ import CreateProject from './CreateProject'
 import apiClient from '../services/api'
 import './ProjectsList.css'
 
-const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?w=400&h=300&fit=crop'
+const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop'
 
 function ProjectsList() {
   const [projects, setProjects] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [filterStatus, setFilterStatus] = useState('All')
+  // By default, exclude "Completed" and "Deleted" - only show Planning and In Progress
+  const [selectedStatuses, setSelectedStatuses] = useState(new Set(['Planning', 'In Progress']))
   const [sortBy, setSortBy] = useState('newest')
   const [searchQuery, setSearchQuery] = useState('')
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [isCreating, setIsCreating] = useState(false)
+  const [showFilterDropdown, setShowFilterDropdown] = useState(false)
 
-  // Get unique statuses for filter dropdown
-  const statuses = useMemo(() => {
-    const uniqueStatuses = [...new Set(projects.map(project => project.status))]
-    return ['All', ...uniqueStatuses]
-  }, [projects])
+  // Available status options
+  const statusOptions = ['Planning', 'In Progress', 'Completed', 'Deleted']
 
   // Filter and sort projects
   const filteredAndSortedProjects = useMemo(() => {
     let filtered = projects
+
+    // Apply status filter - show projects matching any selected status
+    if (selectedStatuses.size > 0) {
+      filtered = filtered.filter(project => selectedStatuses.has(project.status))
+    }
 
     // Apply search filter
     if (searchQuery.trim() !== '') {
@@ -34,11 +38,6 @@ function ProjectsList() {
         const description = (project.description || '').toLowerCase()
         return title.includes(query) || description.includes(query)
       })
-    }
-
-    // Apply status filter
-    if (filterStatus !== 'All') {
-      filtered = filtered.filter(project => project.status === filterStatus)
     }
 
     // Apply sorting
@@ -56,7 +55,48 @@ function ProjectsList() {
     })
 
     return sorted
-  }, [projects, filterStatus, sortBy, searchQuery])
+  }, [projects, selectedStatuses, sortBy, searchQuery])
+
+  // Handle status checkbox toggle
+  const handleStatusToggle = (status) => {
+    setSelectedStatuses(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(status)) {
+        newSet.delete(status)
+      } else {
+        newSet.add(status)
+      }
+      return newSet
+    })
+  }
+
+  // Get filter button text
+  const getFilterButtonText = () => {
+    if (selectedStatuses.size === 0) {
+      return 'No status selected'
+    }
+    if (selectedStatuses.size === statusOptions.length) {
+      return 'All statuses'
+    }
+    if (selectedStatuses.size === 1) {
+      return Array.from(selectedStatuses)[0]
+    }
+    return `${selectedStatuses.size} selected`
+  }
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showFilterDropdown && !event.target.closest('.filter-dropdown-container')) {
+        setShowFilterDropdown(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showFilterDropdown])
 
   // Get project statistics
   const projectStats = useMemo(() => {
@@ -66,14 +106,14 @@ function ProjectsList() {
     return { completed, inProgress, planning, total: projects.length }
   }, [projects])
 
-  // Load projects from API
+  // Load projects from API - load all projects, filter client-side
   useEffect(() => {
     const loadProjects = async () => {
       try {
         setIsLoading(true)
         setError(null)
-        const apiStatus = filterStatus !== 'All' ? filterStatus : null
-        const response = await apiClient.getProjects(apiStatus)
+        // Load all projects, filtering will be done client-side
+        const response = await apiClient.getProjects(null)
         setProjects(response.projects || [])
       } catch (err) {
         console.error('Failed to load projects:', err)
@@ -84,7 +124,7 @@ function ProjectsList() {
     }
 
     loadProjects()
-  }, [filterStatus])
+  }, [])
 
   const handleCreateProject = async (projectData) => {
     try {
@@ -164,18 +204,35 @@ function ProjectsList() {
               Create Project
             </button>
             
-            <div className="control-item">
-              <label htmlFor="status-filter" className="control-label">Filter:</label>
-              <select 
-                id="status-filter"
-                value={filterStatus} 
-                onChange={(e) => setFilterStatus(e.target.value)}
-                className="modern-select"
-              >
-                {statuses.map(status => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
-              </select>
+            <div className="control-item filter-dropdown-container">
+              <label className="control-label">Filter:</label>
+              <div className="filter-dropdown-wrapper">
+                <button
+                  type="button"
+                  className="filter-dropdown-button"
+                  onClick={() => setShowFilterDropdown(!showFilterDropdown)}
+                  aria-expanded={showFilterDropdown}
+                  aria-haspopup="true"
+                >
+                  <span className="filter-button-text">{getFilterButtonText()}</span>
+                  <span className={`filter-dropdown-arrow ${showFilterDropdown ? 'open' : ''}`}>▼</span>
+                </button>
+                {showFilterDropdown && (
+                  <div className="filter-dropdown-menu">
+                    {statusOptions.map(status => (
+                      <label key={status} className="status-checkbox-label">
+                        <input
+                          type="checkbox"
+                          checked={selectedStatuses.has(status)}
+                          onChange={() => handleStatusToggle(status)}
+                          className="status-checkbox"
+                        />
+                        <span className="status-checkbox-text">{status}</span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
             
             <div className="control-item">
@@ -229,17 +286,19 @@ function ProjectsList() {
             <p className="empty-state-text">
               {searchQuery.trim() !== ''
                 ? `No projects found matching "${searchQuery}". Try a different search term.`
-                : filterStatus !== 'All' 
-                ? `No projects with status "${filterStatus}" found. Try adjusting your filters.`
+                : selectedStatuses.size === 0
+                ? 'No status filters selected. Please select at least one status to view projects.'
+                : selectedStatuses.size < statusOptions.length
+                ? `No projects found with the selected status filters. Try adjusting your filters.`
                 : 'Ready to start your first DIY adventure? Every great maker starts with a single project!'
               }
             </p>
-            {filterStatus !== 'All' && (
+            {selectedStatuses.size === 0 && (
               <button 
                 className="btn btn-primary"
-                onClick={() => setFilterStatus('All')}
+                onClick={() => setSelectedStatuses(new Set(['Planning', 'In Progress']))}
               >
-                Show All Projects
+                Reset Filters
               </button>
             )}
           </div>
