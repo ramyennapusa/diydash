@@ -12,7 +12,6 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
   const [uploadFormData, setUploadFormData] = useState({
     file: null,
     caption: '',
-    type: 'progress',
     preview: null
   })
 
@@ -35,36 +34,6 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
 
   const handleImageLoadStart = (pictureId) => {
     setImageLoading(prev => ({ ...prev, [pictureId]: true }))
-  }
-
-  const getTypeIcon = (type) => {
-    switch (type) {
-      case 'progress':
-        return '🔄'
-      case 'final':
-        return '✅'
-      case 'reference':
-        return '📋'
-      case 'step':
-        return '👣'
-      default:
-        return '📸'
-    }
-  }
-
-  const getTypeLabel = (type) => {
-    switch (type) {
-      case 'progress':
-        return 'Progress'
-      case 'final':
-        return 'Final Result'
-      case 'reference':
-        return 'Reference'
-      case 'step':
-        return 'Step'
-      default:
-        return 'Photo'
-    }
   }
 
   const handleFileChange = (e) => {
@@ -131,8 +100,7 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
         id: `pic-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
         imageData: base64Data,
         imageContentType: uploadFormData.file.type,
-        caption: uploadFormData.caption || 'Uploaded image',
-        type: uploadFormData.type,
+        caption: uploadFormData.caption || '',
         order: currentPictures.length + 1
       }
 
@@ -143,7 +111,6 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
       setUploadFormData({
         file: null,
         caption: '',
-        type: 'progress',
         preview: null
       })
       setShowUploadForm(false)
@@ -164,7 +131,6 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
     setUploadFormData({
       file: null,
       caption: '',
-      type: 'progress',
       preview: null
     })
     setShowUploadForm(false)
@@ -245,10 +211,6 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
             </div>
             
             <div className="picture-info">
-              <div className="picture-type">
-                <span className="type-icon">{getTypeIcon(picture.type)}</span>
-                <span className="type-label">{getTypeLabel(picture.type)}</span>
-              </div>
               <p className="picture-caption">{picture.caption}</p>
             </div>
           </div>
@@ -301,20 +263,6 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="picture-type">Type</label>
-                <select
-                  id="picture-type"
-                  value={uploadFormData.type}
-                  onChange={(e) => setUploadFormData(prev => ({ ...prev, type: e.target.value }))}
-                >
-                  <option value="progress">🔄 Progress</option>
-                  <option value="final">✅ Final Result</option>
-                  <option value="reference">📋 Reference</option>
-                  <option value="step">👣 Step</option>
-                </select>
-              </div>
-
               <div className="form-actions">
                 <button type="button" onClick={handleCancelUpload} className="cancel-button">
                   Cancel
@@ -345,10 +293,6 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
             </div>
             
             <div className="lightbox-info">
-              <div className="lightbox-type">
-                <span className="type-icon">{getTypeIcon(selectedImage.type)}</span>
-                <span className="type-label">{getTypeLabel(selectedImage.type)}</span>
-              </div>
               <h4 className="lightbox-caption">{selectedImage.caption}</h4>
             </div>
           </div>

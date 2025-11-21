@@ -14,7 +14,7 @@ const ProjectDetails = () => {
   const [project, setProject] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [activeTab, setActiveTab] = useState('pictures')
+  const [activeTab, setActiveTab] = useState('tasks')
 
   const fetchProject = async () => {
     try {
@@ -123,16 +123,16 @@ const ProjectDetails = () => {
       <div className="project-content">
         <nav className="project-tabs">
           <button 
-            className={`tab-button ${activeTab === 'pictures' ? 'active' : ''}`}
-            onClick={() => setActiveTab('pictures')}
-          >
-            📸 Pictures
-          </button>
-          <button 
             className={`tab-button ${activeTab === 'tasks' ? 'active' : ''}`}
             onClick={() => setActiveTab('tasks')}
           >
             ✅ Tasks
+          </button>
+          <button 
+            className={`tab-button ${activeTab === 'pictures' ? 'active' : ''}`}
+            onClick={() => setActiveTab('pictures')}
+          >
+            📸 Pictures
           </button>
           <button 
             className={`tab-button ${activeTab === 'videos' ? 'active' : ''}`}
@@ -141,30 +141,30 @@ const ProjectDetails = () => {
             🎥 Videos
           </button>
           <button 
-            className={`tab-button ${activeTab === 'materials' ? 'active' : ''}`}
-            onClick={() => setActiveTab('materials')}
-          >
-            🛠️ Materials
-          </button>
-          <button 
             className={`tab-button ${activeTab === 'references' ? 'active' : ''}`}
             onClick={() => setActiveTab('references')}
           >
             🔗 References
           </button>
+          <button 
+            className={`tab-button ${activeTab === 'materials' ? 'active' : ''}`}
+            onClick={() => setActiveTab('materials')}
+          >
+            🛠️ Materials
+          </button>
         </nav>
 
         <div className="tab-content">
-          {activeTab === 'pictures' && (
-            <ProjectPictures 
-              pictures={project.pictures || []} 
+          {activeTab === 'tasks' && (
+            <ProjectTasks 
+              tasks={project.tasks || []} 
               projectId={project.id}
               onUpdate={fetchProject}
             />
           )}
-          {activeTab === 'tasks' && (
-            <ProjectTasks 
-              tasks={project.tasks || []} 
+          {activeTab === 'pictures' && (
+            <ProjectPictures 
+              pictures={project.pictures || []} 
               projectId={project.id}
               onUpdate={fetchProject}
             />
@@ -176,17 +176,17 @@ const ProjectDetails = () => {
               onUpdate={fetchProject}
             />
           )}
-          {activeTab === 'materials' && (
-            <ProjectMaterials 
-              materials={project.materials || []} 
-              tools={project.tools || []} 
-            />
-          )}
           {activeTab === 'references' && (
             <ProjectReferences 
               references={project.references || []}
               projectId={project.id}
               onUpdate={fetchProject}
+            />
+          )}
+          {activeTab === 'materials' && (
+            <ProjectMaterials 
+              materials={project.materials || []} 
+              tools={project.tools || []} 
             />
           )}
         </div>

@@ -7,16 +7,12 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate }) => {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [taskStates, setTaskStates] = useState({})
-  const [filterCategory, setFilterCategory] = useState('all')
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [creating, setCreating] = useState(false)
   const [createError, setCreateError] = useState(null)
   const [taskFormData, setTaskFormData] = useState({
     title: '',
     description: '',
-    estimatedTime: '',
-    difficulty: 'Beginner',
-    category: 'Planning',
     completed: false
   })
 
@@ -87,9 +83,6 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate }) => {
       setTaskFormData({
         title: '',
         description: '',
-        estimatedTime: '',
-        difficulty: 'Beginner',
-        category: 'Planning',
         completed: false
       })
       setShowCreateForm(false)
@@ -113,50 +106,13 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate }) => {
     setTaskFormData({
       title: '',
       description: '',
-      estimatedTime: '',
-      difficulty: 'Beginner',
-      category: 'Planning',
       completed: false
     })
     setShowCreateForm(false)
     setCreateError(null)
   }
 
-  const getDifficultyColor = (difficulty) => {
-    switch (difficulty) {
-      case 'Beginner':
-        return '#10b981'
-      case 'Intermediate':
-        return '#f59e0b'
-      case 'Advanced':
-        return '#ef4444'
-      default:
-        return '#6b7280'
-    }
-  }
 
-  const getCategoryIcon = (category) => {
-    switch (category) {
-      case 'Planning':
-        return '📋'
-      case 'Materials':
-        return '📦'
-      case 'Construction':
-        return '🔨'
-      case 'Installation':
-        return '⚙️'
-      case 'Finishing':
-        return '✨'
-      case 'Design':
-        return '🎨'
-      case 'Electronics':
-        return '⚡'
-      case 'Programming':
-        return '💻'
-      default:
-        return '📝'
-    }
-  }
 
   if (loading) {
     return (
@@ -188,10 +144,7 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate }) => {
     return (
       <div className="project-tasks">
         <div className="tasks-header">
-          <div>
-            <h3>Project Tasks</h3>
-            <p>Track your progress through each step of the project</p>
-          </div>
+          <div></div>
           <button 
             className="upload-button"
             onClick={() => setShowCreateForm(true)}
@@ -243,48 +196,6 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate }) => {
                   />
                 </div>
 
-                <div className="form-group">
-                  <label htmlFor="task-category">Category</label>
-                  <select
-                    id="task-category"
-                    value={taskFormData.category}
-                    onChange={(e) => setTaskFormData(prev => ({ ...prev, category: e.target.value }))}
-                  >
-                    <option value="Planning">📋 Planning</option>
-                    <option value="Materials">📦 Materials</option>
-                    <option value="Construction">🔨 Construction</option>
-                    <option value="Installation">⚙️ Installation</option>
-                    <option value="Finishing">✨ Finishing</option>
-                    <option value="Design">🎨 Design</option>
-                    <option value="Electronics">⚡ Electronics</option>
-                    <option value="Programming">💻 Programming</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="task-difficulty">Difficulty</label>
-                  <select
-                    id="task-difficulty"
-                    value={taskFormData.difficulty}
-                    onChange={(e) => setTaskFormData(prev => ({ ...prev, difficulty: e.target.value }))}
-                  >
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label htmlFor="task-time">Estimated Time</label>
-                  <input
-                    type="text"
-                    id="task-time"
-                    value={taskFormData.estimatedTime}
-                    onChange={(e) => setTaskFormData(prev => ({ ...prev, estimatedTime: e.target.value }))}
-                    placeholder="e.g., 2 hours, 30 minutes"
-                  />
-                </div>
-
                 <div className="form-actions">
                   <button type="button" onClick={handleCancelCreate} className="cancel-button">
                     Cancel
@@ -302,38 +213,17 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate }) => {
   }
 
   // Sort tasks by order
-  const sortedTasks = [...tasks].sort((a, b) => a.order - b.order)
-
-  // Get unique categories
-  const categories = ['all', ...new Set(tasks.map(task => task.category))]
-
-  // Filter tasks by category
-  const filteredTasks = filterCategory === 'all' 
-    ? sortedTasks 
-    : sortedTasks.filter(task => task.category === filterCategory)
+  const sortedTasks = [...tasks].sort((a, b) => (a.order || 0) - (b.order || 0))
 
   // Calculate progress
   const completedTasks = Object.values(taskStates).filter(Boolean).length
   const totalTasks = tasks.length
   const progressPercentage = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
 
-  // Group tasks by category for better organization
-  const tasksByCategory = filteredTasks.reduce((acc, task) => {
-    const category = task.category
-    if (!acc[category]) {
-      acc[category] = []
-    }
-    acc[category].push(task)
-    return acc
-  }, {})
-
   return (
     <div className="project-tasks">
       <div className="tasks-header">
-        <div>
-          <h3>Project Tasks</h3>
-          <p>Track your progress through each step of the project</p>
-        </div>
+        <div></div>
         <button 
           className="upload-button"
           onClick={() => setShowCreateForm(true)}
@@ -342,90 +232,18 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate }) => {
         </button>
       </div>
 
-      {/* Progress Overview */}
-      <div className="progress-overview">
-        <div className="progress-stats">
-          <div className="stat">
-            <span className="stat-number">{completedTasks}</span>
-            <span className="stat-label">Completed</span>
-          </div>
-          <div className="stat">
-            <span className="stat-number">{totalTasks - completedTasks}</span>
-            <span className="stat-label">Remaining</span>
-          </div>
-          <div className="stat">
-            <span className="stat-number">{progressPercentage}%</span>
-            <span className="stat-label">Progress</span>
-          </div>
-        </div>
-        
-        <div className="progress-bar-container">
-          <div className="progress-bar">
-            <div 
-              className="progress-fill" 
-              style={{ width: `${progressPercentage}%` }}
-            ></div>
-          </div>
-          <span className="progress-text">{progressPercentage}% Complete</span>
-        </div>
-      </div>
-
-      {/* Category Filter */}
-      <div className="category-filter">
-        <label htmlFor="category-select">Filter by category:</label>
-        <select 
-          id="category-select"
-          value={filterCategory} 
-          onChange={(e) => setFilterCategory(e.target.value)}
-          className="category-select"
-        >
-          {categories.map(category => (
-            <option key={category} value={category}>
-              {category === 'all' ? 'All Categories' : `${getCategoryIcon(category)} ${category}`}
-            </option>
-          ))}
-        </select>
-      </div>
-
       {/* Tasks List */}
       <div className="tasks-list">
-        {filterCategory === 'all' ? (
-          // Group by category when showing all
-          Object.entries(tasksByCategory).map(([category, categoryTasks]) => (
-            <div key={category} className="category-group">
-              <h4 className="category-title">
-                <span className="category-icon">{getCategoryIcon(category)}</span>
-                {category}
-                <span className="category-count">({categoryTasks.length})</span>
-              </h4>
-              
-              <div className="category-tasks">
-                {categoryTasks.map((task) => (
-                  <TaskItem
-                    key={task.id}
-                    task={task}
-                    isCompleted={taskStates[task.id] || false}
-                    onToggle={() => handleTaskToggle(task.id)}
-                    getDifficultyColor={getDifficultyColor}
-                  />
-                ))}
-              </div>
-            </div>
-          ))
-        ) : (
-          // Show filtered tasks without grouping
-          <div className="category-tasks">
-            {filteredTasks.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                isCompleted={taskStates[task.id] || false}
-                onToggle={() => handleTaskToggle(task.id)}
-                getDifficultyColor={getDifficultyColor}
-              />
-            ))}
-          </div>
-        )}
+        <div className="category-tasks">
+          {sortedTasks.map((task) => (
+            <TaskItem
+              key={task.id}
+              task={task}
+              isCompleted={taskStates[task.id] || false}
+              onToggle={() => handleTaskToggle(task.id)}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Create Task Form Modal */}
@@ -463,48 +281,6 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate }) => {
                 />
               </div>
 
-              <div className="form-group">
-                <label htmlFor="task-category">Category</label>
-                <select
-                  id="task-category"
-                  value={taskFormData.category}
-                  onChange={(e) => setTaskFormData(prev => ({ ...prev, category: e.target.value }))}
-                >
-                  <option value="Planning">📋 Planning</option>
-                  <option value="Materials">📦 Materials</option>
-                  <option value="Construction">🔨 Construction</option>
-                  <option value="Installation">⚙️ Installation</option>
-                  <option value="Finishing">✨ Finishing</option>
-                  <option value="Design">🎨 Design</option>
-                  <option value="Electronics">⚡ Electronics</option>
-                  <option value="Programming">💻 Programming</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="task-difficulty">Difficulty</label>
-                <select
-                  id="task-difficulty"
-                  value={taskFormData.difficulty}
-                  onChange={(e) => setTaskFormData(prev => ({ ...prev, difficulty: e.target.value }))}
-                >
-                  <option value="Beginner">Beginner</option>
-                  <option value="Intermediate">Intermediate</option>
-                  <option value="Advanced">Advanced</option>
-                </select>
-              </div>
-
-              <div className="form-group">
-                <label htmlFor="task-time">Estimated Time</label>
-                <input
-                  type="text"
-                  id="task-time"
-                  value={taskFormData.estimatedTime}
-                  onChange={(e) => setTaskFormData(prev => ({ ...prev, estimatedTime: e.target.value }))}
-                  placeholder="e.g., 2 hours, 30 minutes"
-                />
-              </div>
-
               <div className="form-actions">
                 <button type="button" onClick={handleCancelCreate} className="cancel-button">
                   Cancel
@@ -522,7 +298,7 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate }) => {
 }
 
 // Separate TaskItem component for better organization
-const TaskItem = ({ task, isCompleted, onToggle, getDifficultyColor }) => {
+const TaskItem = ({ task, isCompleted, onToggle }) => {
   return (
     <div className={`task-item ${isCompleted ? 'completed' : ''}`}>
       <div className="task-checkbox-container">
@@ -541,17 +317,13 @@ const TaskItem = ({ task, isCompleted, onToggle, getDifficultyColor }) => {
       <div className="task-content">
         <div className="task-header">
           <h5 className="task-title">{task.title}</h5>
-          <div className="task-badges">
-            <span 
-              className="difficulty-badge"
-              style={{ backgroundColor: getDifficultyColor(task.difficulty) }}
-            >
-              {task.difficulty}
-            </span>
-            <span className="time-badge">
-              ⏱️ {task.estimatedTime}
-            </span>
-          </div>
+          {task.estimatedTime && (
+            <div className="task-badges">
+              <span className="time-badge">
+                ⏱️ {task.estimatedTime}
+              </span>
+            </div>
+          )}
         </div>
         
         <p className="task-description">{task.description}</p>
