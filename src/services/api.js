@@ -57,7 +57,8 @@ class DIYDashAPI {
       tasks: [],
       videos: [],
       materials: [],
-      tools: []
+      tools: [],
+      references: []
     };
 
     // If imageData is provided (base64), include it for S3 upload
@@ -95,11 +96,26 @@ class DIYDashAPI {
     return this.updateProject(id, { status });
   }
 
-  // Add task to project
+  // Add task to project (uses dedicated endpoint)
   async addTask(projectId, task) {
-    const project = await this.getProject(projectId);
-    const tasks = [...(project.tasks || []), task];
-    return this.updateProject(projectId, { tasks });
+    return this.request(`/projects/${projectId}/tasks`, {
+      method: 'POST',
+      body: JSON.stringify({
+        title: task.title,
+        description: task.description || '',
+        completed: task.completed !== undefined ? task.completed : false,
+        estimatedTime: task.estimatedTime || '',
+        difficulty: task.difficulty || 'Beginner',
+        order: task.order,
+        category: task.category || 'Planning',
+        id: task.id
+      }),
+    });
+  }
+
+  // Get tasks for a project
+  async getTasks(projectId) {
+    return this.request(`/projects/${projectId}/tasks`);
   }
 
   // Update task completion
@@ -111,18 +127,53 @@ class DIYDashAPI {
     return this.updateProject(projectId, { tasks });
   }
 
-  // Add picture to project
+  // Add picture to project (uploads to S3)
   async addPicture(projectId, picture) {
-    const project = await this.getProject(projectId);
-    const pictures = [...(project.pictures || []), picture];
-    return this.updateProject(projectId, { pictures });
+    // Use dedicated upload endpoint if imageData is provided
+    if (picture.imageData) {
+      return this.request(`/projects/${projectId}/pictures`, {
+        method: 'POST',
+        body: JSON.stringify({
+          imageData: picture.imageData,
+          imageContentType: picture.imageContentType || 'image/jpeg',
+          caption: picture.caption || 'Uploaded picture',
+          type: picture.type || 'progress',
+          id: picture.id,
+          order: picture.order
+        }),
+      });
+    } else {
+      // Fallback to update project if no imageData (for URL-based pictures)
+      const project = await this.getProject(projectId);
+      const pictures = [...(project.pictures || []), picture];
+      return this.updateProject(projectId, { pictures });
+    }
   }
 
-  // Add video to project
+  // Add video to project (uploads to S3 or adds URL)
   async addVideo(projectId, video) {
-    const project = await this.getProject(projectId);
-    const videos = [...(project.videos || []), video];
-    return this.updateProject(projectId, { videos });
+    // Use dedicated upload endpoint if videoData is provided or url is provided
+    if (video.videoData || video.url) {
+      return this.request(`/projects/${projectId}/videos`, {
+        method: 'POST',
+        body: JSON.stringify({
+          videoData: video.videoData,
+          videoContentType: video.videoContentType,
+          url: video.url,
+          title: video.title || 'Untitled Video',
+          description: video.description || '',
+          type: video.type || 'tutorial',
+          duration: video.duration || '0:00',
+          thumbnail: video.thumbnail || '',
+          id: video.id
+        }),
+      });
+    } else {
+      // Fallback to update project if no videoData or url
+      const project = await this.getProject(projectId);
+      const videos = [...(project.videos || []), video];
+      return this.updateProject(projectId, { videos });
+    }
   }
 
   // Add material to project
@@ -139,6 +190,13 @@ class DIYDashAPI {
       material.id === materialId ? { ...material, purchased: !material.purchased } : material
     );
     return this.updateProject(projectId, { materials });
+  }
+
+  // Add reference to project
+  async addReference(projectId, reference) {
+    const project = await this.getProject(projectId);
+    const references = [...(project.references || []), reference];
+    return this.updateProject(projectId, { references });
   }
 }
 

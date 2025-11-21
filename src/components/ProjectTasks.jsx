@@ -1,11 +1,53 @@
 import React, { useState, useEffect } from 'react'
 import '../styles/ProjectTasks.css'
+import apiClient from '../services/api'
 
-const ProjectTasks = ({ tasks = [] }) => {
+const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate }) => {
+  const [tasks, setTasks] = useState(initialTasks)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
   const [taskStates, setTaskStates] = useState({})
   const [filterCategory, setFilterCategory] = useState('all')
+  const [showCreateForm, setShowCreateForm] = useState(false)
+  const [creating, setCreating] = useState(false)
+  const [createError, setCreateError] = useState(null)
+  const [taskFormData, setTaskFormData] = useState({
+    title: '',
+    description: '',
+    estimatedTime: '',
+    difficulty: 'Beginner',
+    category: 'Planning',
+    completed: false
+  })
 
-  // Initialize task states from props
+  // Fetch tasks from API
+  const fetchTasks = async () => {
+    if (!projectId) return
+    
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await apiClient.getTasks(projectId)
+      setTasks(response.tasks || [])
+    } catch (err) {
+      console.error('Failed to load tasks:', err)
+      setError(err.message || 'Failed to load tasks')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Fetch tasks on mount and when projectId changes
+  useEffect(() => {
+    if (projectId) {
+      fetchTasks()
+    } else if (initialTasks.length > 0) {
+      // Fallback to initialTasks if no projectId
+      setTasks(initialTasks)
+    }
+  }, [projectId])
+
+  // Initialize task states from tasks
   useEffect(() => {
     const initialStates = {}
     tasks.forEach(task => {
@@ -19,6 +61,65 @@ const ProjectTasks = ({ tasks = [] }) => {
       ...prev,
       [taskId]: !prev[taskId]
     }))
+    // TODO: Update task completion status via API
+  }
+
+  const handleCreateTask = async (e) => {
+    e.preventDefault()
+    setCreateError(null)
+
+    if (!taskFormData.title.trim()) {
+      setCreateError('Task title is required')
+      return
+    }
+
+    if (!projectId) {
+      setCreateError('Project ID is required')
+      return
+    }
+
+    setCreating(true)
+
+    try {
+      await apiClient.addTask(projectId, taskFormData)
+      
+      // Reset form
+      setTaskFormData({
+        title: '',
+        description: '',
+        estimatedTime: '',
+        difficulty: 'Beginner',
+        category: 'Planning',
+        completed: false
+      })
+      setShowCreateForm(false)
+
+      // Refresh tasks
+      await fetchTasks()
+      
+      // Notify parent component
+      if (onUpdate) {
+        onUpdate()
+      }
+    } catch (err) {
+      console.error('Failed to create task:', err)
+      setCreateError(err.message || 'Failed to create task. Please try again.')
+    } finally {
+      setCreating(false)
+    }
+  }
+
+  const handleCancelCreate = () => {
+    setTaskFormData({
+      title: '',
+      description: '',
+      estimatedTime: '',
+      difficulty: 'Beginner',
+      category: 'Planning',
+      completed: false
+    })
+    setShowCreateForm(false)
+    setCreateError(null)
   }
 
   const getDifficultyColor = (difficulty) => {
@@ -57,14 +158,145 @@ const ProjectTasks = ({ tasks = [] }) => {
     }
   }
 
-  if (!tasks || tasks.length === 0) {
+  if (loading) {
     return (
       <div className="tasks-empty">
         <div className="empty-state">
-          <span className="empty-icon">✅</span>
-          <h3>No Tasks Yet</h3>
-          <p>Tasks will be added as the project plan develops.</p>
+          <div className="loading-spinner"></div>
+          <p>Loading tasks...</p>
         </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="tasks-empty">
+        <div className="empty-state">
+          <span className="empty-icon">⚠️</span>
+          <h3>Error Loading Tasks</h3>
+          <p>{error}</p>
+          <button onClick={fetchTasks} className="upload-button" style={{ marginTop: '1rem' }}>
+            Retry
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  if (!tasks || tasks.length === 0) {
+    return (
+      <div className="project-tasks">
+        <div className="tasks-header">
+          <div>
+            <h3>Project Tasks</h3>
+            <p>Track your progress through each step of the project</p>
+          </div>
+          <button 
+            className="upload-button"
+            onClick={() => setShowCreateForm(true)}
+          >
+            + Create Task
+          </button>
+        </div>
+        
+        <div className="tasks-empty">
+          <div className="empty-state">
+            <span className="empty-icon">✅</span>
+            <h3>No Tasks Yet</h3>
+            <p>Create your first task to start tracking your project progress.</p>
+          </div>
+        </div>
+
+        {/* Create Task Form Modal */}
+        {showCreateForm && (
+          <div className="upload-modal-overlay" onClick={handleCancelCreate}>
+            <div className="upload-modal" onClick={(e) => e.stopPropagation()}>
+              <div className="upload-modal-header">
+                <h3>Create Task</h3>
+                <button className="close-button" onClick={handleCancelCreate}>✕</button>
+              </div>
+              
+              <form onSubmit={handleCreateTask} className="upload-form">
+                {createError && <div className="upload-error">{createError}</div>}
+                
+                <div className="form-group">
+                  <label htmlFor="task-title">Title *</label>
+                  <input
+                    type="text"
+                    id="task-title"
+                    value={taskFormData.title}
+                    onChange={(e) => setTaskFormData(prev => ({ ...prev, title: e.target.value }))}
+                    placeholder="Enter task title..."
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="task-description">Description</label>
+                  <textarea
+                    id="task-description"
+                    value={taskFormData.description}
+                    onChange={(e) => setTaskFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Describe this task..."
+                    rows="3"
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="task-category">Category</label>
+                  <select
+                    id="task-category"
+                    value={taskFormData.category}
+                    onChange={(e) => setTaskFormData(prev => ({ ...prev, category: e.target.value }))}
+                  >
+                    <option value="Planning">📋 Planning</option>
+                    <option value="Materials">📦 Materials</option>
+                    <option value="Construction">🔨 Construction</option>
+                    <option value="Installation">⚙️ Installation</option>
+                    <option value="Finishing">✨ Finishing</option>
+                    <option value="Design">🎨 Design</option>
+                    <option value="Electronics">⚡ Electronics</option>
+                    <option value="Programming">💻 Programming</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="task-difficulty">Difficulty</label>
+                  <select
+                    id="task-difficulty"
+                    value={taskFormData.difficulty}
+                    onChange={(e) => setTaskFormData(prev => ({ ...prev, difficulty: e.target.value }))}
+                  >
+                    <option value="Beginner">Beginner</option>
+                    <option value="Intermediate">Intermediate</option>
+                    <option value="Advanced">Advanced</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label htmlFor="task-time">Estimated Time</label>
+                  <input
+                    type="text"
+                    id="task-time"
+                    value={taskFormData.estimatedTime}
+                    onChange={(e) => setTaskFormData(prev => ({ ...prev, estimatedTime: e.target.value }))}
+                    placeholder="e.g., 2 hours, 30 minutes"
+                  />
+                </div>
+
+                <div className="form-actions">
+                  <button type="button" onClick={handleCancelCreate} className="cancel-button">
+                    Cancel
+                  </button>
+                  <button type="submit" className="submit-button" disabled={creating || !taskFormData.title.trim()}>
+                    {creating ? 'Creating...' : 'Create Task'}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     )
   }
@@ -98,8 +330,16 @@ const ProjectTasks = ({ tasks = [] }) => {
   return (
     <div className="project-tasks">
       <div className="tasks-header">
-        <h3>Project Tasks</h3>
-        <p>Track your progress through each step of the project</p>
+        <div>
+          <h3>Project Tasks</h3>
+          <p>Track your progress through each step of the project</p>
+        </div>
+        <button 
+          className="upload-button"
+          onClick={() => setShowCreateForm(true)}
+        >
+          + Create Task
+        </button>
       </div>
 
       {/* Progress Overview */}
@@ -187,6 +427,96 @@ const ProjectTasks = ({ tasks = [] }) => {
           </div>
         )}
       </div>
+
+      {/* Create Task Form Modal */}
+      {showCreateForm && (
+        <div className="upload-modal-overlay" onClick={handleCancelCreate}>
+          <div className="upload-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="upload-modal-header">
+              <h3>Create Task</h3>
+              <button className="close-button" onClick={handleCancelCreate}>✕</button>
+            </div>
+            
+            <form onSubmit={handleCreateTask} className="upload-form">
+              {createError && <div className="upload-error">{createError}</div>}
+              
+              <div className="form-group">
+                <label htmlFor="task-title">Title *</label>
+                <input
+                  type="text"
+                  id="task-title"
+                  value={taskFormData.title}
+                  onChange={(e) => setTaskFormData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Enter task title..."
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="task-description">Description</label>
+                <textarea
+                  id="task-description"
+                  value={taskFormData.description}
+                  onChange={(e) => setTaskFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Describe this task..."
+                  rows="3"
+                />
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="task-category">Category</label>
+                <select
+                  id="task-category"
+                  value={taskFormData.category}
+                  onChange={(e) => setTaskFormData(prev => ({ ...prev, category: e.target.value }))}
+                >
+                  <option value="Planning">📋 Planning</option>
+                  <option value="Materials">📦 Materials</option>
+                  <option value="Construction">🔨 Construction</option>
+                  <option value="Installation">⚙️ Installation</option>
+                  <option value="Finishing">✨ Finishing</option>
+                  <option value="Design">🎨 Design</option>
+                  <option value="Electronics">⚡ Electronics</option>
+                  <option value="Programming">💻 Programming</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="task-difficulty">Difficulty</label>
+                <select
+                  id="task-difficulty"
+                  value={taskFormData.difficulty}
+                  onChange={(e) => setTaskFormData(prev => ({ ...prev, difficulty: e.target.value }))}
+                >
+                  <option value="Beginner">Beginner</option>
+                  <option value="Intermediate">Intermediate</option>
+                  <option value="Advanced">Advanced</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label htmlFor="task-time">Estimated Time</label>
+                <input
+                  type="text"
+                  id="task-time"
+                  value={taskFormData.estimatedTime}
+                  onChange={(e) => setTaskFormData(prev => ({ ...prev, estimatedTime: e.target.value }))}
+                  placeholder="e.g., 2 hours, 30 minutes"
+                />
+              </div>
+
+              <div className="form-actions">
+                <button type="button" onClick={handleCancelCreate} className="cancel-button">
+                  Cancel
+                </button>
+                <button type="submit" className="submit-button" disabled={creating || !taskFormData.title.trim()}>
+                  {creating ? 'Creating...' : 'Create Task'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

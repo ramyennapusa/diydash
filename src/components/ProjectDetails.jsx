@@ -5,6 +5,7 @@ import ProjectPictures from './ProjectPictures'
 import ProjectTasks from './ProjectTasks'
 import ProjectVideos from './ProjectVideos'
 import ProjectMaterials from './ProjectMaterials'
+import ProjectReferences from './ProjectReferences'
 import '../styles/ProjectDetails.css'
 
 const ProjectDetails = () => {
@@ -15,26 +16,26 @@ const ProjectDetails = () => {
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('pictures')
 
-  useEffect(() => {
-    const fetchProject = async () => {
-      try {
-        setLoading(true)
-        setError(null)
-        
-        const projectData = await apiClient.getProject(id)
-        if (!projectData) {
-          setError('Project not found')
-        } else {
-          setProject(projectData)
-        }
-      } catch (err) {
-        console.error('Failed to load project details:', err)
-        setError(err.message || 'Failed to load project details')
-      } finally {
-        setLoading(false)
+  const fetchProject = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const projectData = await apiClient.getProject(id)
+      if (!projectData) {
+        setError('Project not found')
+      } else {
+        setProject(projectData)
       }
+    } catch (err) {
+      console.error('Failed to load project details:', err)
+      setError(err.message || 'Failed to load project details')
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     if (id) {
       fetchProject()
     }
@@ -166,16 +167,47 @@ const ProjectDetails = () => {
           >
             🛠️ Materials
           </button>
+          <button 
+            className={`tab-button ${activeTab === 'references' ? 'active' : ''}`}
+            onClick={() => setActiveTab('references')}
+          >
+            🔗 References
+          </button>
         </nav>
 
         <div className="tab-content">
-          {activeTab === 'pictures' && <ProjectPictures pictures={project.pictures || []} />}
-          {activeTab === 'tasks' && <ProjectTasks tasks={project.tasks || []} />}
-          {activeTab === 'videos' && <ProjectVideos videos={project.videos || []} />}
+          {activeTab === 'pictures' && (
+            <ProjectPictures 
+              pictures={project.pictures || []} 
+              projectId={project.id}
+              onUpdate={fetchProject}
+            />
+          )}
+          {activeTab === 'tasks' && (
+            <ProjectTasks 
+              tasks={project.tasks || []} 
+              projectId={project.id}
+              onUpdate={fetchProject}
+            />
+          )}
+          {activeTab === 'videos' && (
+            <ProjectVideos 
+              videos={project.videos || []} 
+              projectId={project.id}
+              onUpdate={fetchProject}
+            />
+          )}
           {activeTab === 'materials' && (
             <ProjectMaterials 
               materials={project.materials || []} 
               tools={project.tools || []} 
+            />
+          )}
+          {activeTab === 'references' && (
+            <ProjectReferences 
+              references={project.references || []}
+              projectId={project.id}
+              onUpdate={fetchProject}
             />
           )}
         </div>
