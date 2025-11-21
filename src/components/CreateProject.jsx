@@ -163,11 +163,22 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
                 }}
               />
               <div className="image-preview-overlay">
-                <span className="image-preview-text">
-                  {formData.image ? 'Custom Image' : 'Default Image'}
-                </span>
+                <label htmlFor="image-upload" className="image-change-button">
+                  Change Image
+                </label>
               </div>
+              <input
+                type="file"
+                id="image-upload"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="image-upload-input"
+                style={{ display: 'none' }}
+              />
             </div>
+            <p className="form-hint">
+              Click "Change Image" to upload a custom image
+            </p>
           </div>
 
           {/* Title */}
@@ -226,25 +237,6 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
               <option value="Completed">Completed</option>
             </select>
           </div>
-
-          {/* Image Input Options */}
-          <div className="form-section">
-            <label htmlFor="image-upload" className="form-label">
-              Upload Image
-            </label>
-            <input
-              type="file"
-              id="image-upload"
-              accept="image/*"
-              onChange={handleFileChange}
-              className="form-file-input"
-            />
-            <p className="form-hint">
-              Select an image file from your device
-            </p>
-          </div>
-
-
 
           {/* Form Actions */}
           <div className="form-actions">
