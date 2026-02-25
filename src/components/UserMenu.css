@@ -1,0 +1,115 @@
+.user-menu-wrapper {
+  position: relative;
+  margin-left: auto;
+}
+
+.user-menu-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: var(--diy-secondary, #2c3e50);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.user-menu-trigger:hover {
+  background: var(--diy-primary, #d35400);
+}
+
+.user-menu-trigger:focus-visible {
+  outline: 2px solid var(--diy-primary, #d35400);
+  outline-offset: 2px;
+}
+
+.user-menu-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: var(--diy-secondary, #2c3e50);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.user-menu-avatar--lg {
+  width: 2.5rem;
+  height: 2.5rem;
+  font-size: 1rem;
+}
+
+.user-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 220px;
+  padding: 0.5rem 0;
+  background: #fff;
+  border: 1px solid var(--diy-gray-200, #e9ecef);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  z-index: 100;
+}
+
+.user-menu-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+}
+
+.user-menu-email {
+  font-size: 0.8125rem;
+  color: var(--diy-text-secondary, #5a6c7d);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.user-menu-divider {
+  height: 1px;
+  margin: 0.25rem 0;
+  background: var(--diy-gray-200, #e9ecef);
+}
+
+.user-menu-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  text-align: left;
+  color: var(--diy-text-primary, #2c3e50);
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.user-menu-item:hover {
+  background: var(--diy-gray-100, #f8f9fa);
+}
+
+.user-menu-item:focus-visible {
+  outline: none;
+  background: var(--diy-gray-100, #f8f9fa);
+}
+
+.user-menu-item--logout {
+  color: var(--diy-primary-dark, #a04000);
+  font-weight: 500;
+}
+
+.user-menu-item--logout:hover {
+  background: rgba(211, 84, 0, 0.08);
+}

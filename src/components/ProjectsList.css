@@ -1,18 +1,17 @@
 .projects-list {
   min-height: 100vh;
-  background: #f9fafb;
+  background: #f5f0e8;
   display: flex;
   flex-direction: column;
   gap: 2rem;
   padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
+  width: 100%;
 }
 
 /* Stats Container */
 .stats-container {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: #fdfbf7;
+  border: 1px solid #e8e2d8;
   padding: 2rem;
 }
 
@@ -26,16 +25,48 @@
 }
 
 .stat-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: #fdfbf7;
+  border: 1px solid #e8e2d8;
   border-radius: 0;
   padding: 1rem;
   text-align: center;
-  transition: border-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
-.stat-card:hover {
-  border-color: #6b7280;
+.stat-card.clickable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.stat-card.clickable:hover {
+  border-color: #f97316;
+  background: #fff7ed;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.stat-card.clickable:active {
+  transform: translateY(0);
+}
+
+.stat-card.clickable:focus {
+  outline: 2px solid #f97316;
+  outline-offset: 2px;
+}
+
+.stat-card.clickable.active {
+  background: #fff7ed;
+  border-color: #f97316;
+  border-width: 2px;
+}
+
+.stat-card.clickable.active .stat-number {
+  color: #f97316;
+}
+
+.stat-card.clickable.active .stat-label {
+  color: #f97316;
+  font-weight: 500;
 }
 
 .stat-number {
@@ -55,8 +86,8 @@
 
 /* Projects Container */
 .projects-container {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: #fdfbf7;
+  border: 1px solid #e8e2d8;
   padding: 2rem;
   display: flex;
   flex-direction: column;
@@ -97,7 +128,7 @@
   border-radius: 0.25rem;
   font-size: 0.9375rem;
   color: #000000;
-  background: #ffffff;
+  background: #fdfbf7;
   transition: border-color 0.2s ease;
 }
 
@@ -108,7 +139,7 @@
 .search-input:focus {
   outline: none;
   border-color: #6b7280;
-  background: #ffffff;
+  background: #fdfbf7;
 }
 
 .search-input::placeholder {
@@ -217,7 +248,7 @@
 
 .filter-dropdown-button {
   border: 1px solid #d1d5db;
-  background-color: #ffffff;
+  background-color: #fdfbf7;
   font-size: 0.875rem;
   font-weight: 400;
   color: #000000;
@@ -265,7 +296,7 @@
   top: 100%;
   left: 0;
   margin-top: 0.25rem;
-  background: #ffffff;
+  background: #fdfbf7;
   border: 1px solid #d1d5db;
   border-radius: 0.25rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
@@ -303,7 +334,7 @@
 }
 
 .status-checkbox-label:hover {
-  background-color: #f3f4f6;
+  background-color: #f0eae0;
 }
 
 .status-checkbox {
@@ -334,7 +365,7 @@
 
 .modern-select {
   border: 1px solid #d1d5db;
-  background-color: #ffffff;
+  background-color: #fdfbf7;
   font-size: 0.875rem;
   font-weight: 400;
   color: #000000 !important;
@@ -355,13 +386,13 @@
 .modern-select:focus {
   outline: none;
   border-color: #6b7280;
-  background-color: #ffffff;
+  background-color: #fdfbf7;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23000000' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
   color: #000000 !important;
 }
 
 .modern-select option {
-  background: #ffffff;
+  background: #fdfbf7;
   color: #000000;
   padding: 0.5rem;
 }
@@ -819,7 +850,7 @@
   }
 
   .stats-container {
-    background: white !important;
+    background: #fdfbf7 !important;
     padding: 1rem 0;
   }
 
@@ -833,7 +864,7 @@
   }
   
   .stat-card {
-    background: white !important;
+    background: #fdfbf7 !important;
     border: 1px solid #ccc !important;
   }
 }

@@ -1,9 +1,8 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import apiClient from '../services/api'
 import ProjectPictures from './ProjectPictures'
 import ProjectTasks from './ProjectTasks'
-import ProjectVideos from './ProjectVideos'
 import ProjectMaterials from './ProjectMaterials'
 import ProjectReferences from './ProjectReferences'
 import '../styles/ProjectDetails.css'
@@ -20,6 +19,15 @@ const ProjectDetails = () => {
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [updatingImage, setUpdatingImage] = useState(false)
   const [previewImage, setPreviewImage] = useState(null)
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleValue, setTitleValue] = useState('')
+  const [updatingTitle, setUpdatingTitle] = useState(false)
+  const [editingDescription, setEditingDescription] = useState(false)
+  const [descriptionValue, setDescriptionValue] = useState('')
+  const [updatingDescription, setUpdatingDescription] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [showMenu, setShowMenu] = useState(false)
+  const menuRef = useRef(null)
 
   const fetchProject = async (showLoading = true) => {
     try {
@@ -50,8 +58,62 @@ const ProjectDetails = () => {
     }
   }, [id])
 
+  useEffect(() => {
+    if (project) {
+      setTitleValue(project.title || '')
+      setDescriptionValue(project.description || '')
+    }
+  }, [project])
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setShowMenu(false)
+      }
+    }
+
+    if (showMenu) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [showMenu])
+
+  const handleMenuToggle = (e) => {
+    e.stopPropagation()
+    setShowMenu(!showMenu)
+  }
+
   const handleBackToProjects = () => {
     navigate('/')
+  }
+
+  const handleDeleteProject = async () => {
+    if (!project) {
+      return
+    }
+
+    const confirmMessage = `Are you sure you want to delete "${project.title}"?\n\nThis action cannot be undone.`
+    if (!window.confirm(confirmMessage)) {
+      return
+    }
+
+    try {
+      setDeleting(true)
+      setError(null)
+      
+      await apiClient.deleteProject(id)
+      
+      // Navigate back to projects list after successful deletion
+      navigate('/')
+    } catch (err) {
+      console.error('Failed to delete project:', err)
+      setError(err.message || 'Failed to delete project')
+      setDeleting(false)
+    }
   }
 
   const handleStatusChange = async (newStatus) => {
@@ -85,6 +147,104 @@ const ProjectDetails = () => {
         setPreviewImage(reader.result)
       }
       reader.readAsDataURL(file)
+    }
+  }
+
+  const handleTitleEdit = () => {
+    if (project) {
+      setTitleValue(project.title || '')
+      setEditingTitle(true)
+    }
+  }
+
+  const handleTitleCancel = () => {
+    if (project) {
+      setTitleValue(project.title || '')
+    }
+    setEditingTitle(false)
+  }
+
+  const handleTitleSave = async () => {
+    if (!project || !titleValue.trim()) {
+      setError('Title cannot be empty')
+      return
+    }
+
+    if (titleValue.trim() === project.title) {
+      setEditingTitle(false)
+      return
+    }
+
+    try {
+      setUpdatingTitle(true)
+      setError(null)
+      
+      const updatedProject = await apiClient.updateProject(id, { title: titleValue.trim() })
+      setProject(updatedProject)
+      setEditingTitle(false)
+    } catch (err) {
+      console.error('Failed to update project title:', err)
+      setError(err.message || 'Failed to update project title')
+    } finally {
+      setUpdatingTitle(false)
+    }
+  }
+
+  const handleTitleKeyDown = (e) => {
+    if (e.key === 'Enter') {
+      handleTitleSave()
+    } else if (e.key === 'Escape') {
+      handleTitleCancel()
+    }
+  }
+
+  const handleDescriptionEdit = () => {
+    if (project) {
+      setDescriptionValue(project.description || '')
+      setEditingDescription(true)
+    }
+  }
+
+  const handleDescriptionCancel = () => {
+    if (project) {
+      setDescriptionValue(project.description || '')
+    }
+    setEditingDescription(false)
+  }
+
+  const handleDescriptionSave = async () => {
+    if (!project) {
+      return
+    }
+
+    // Description can be empty, so we allow saving empty descriptions
+    if (descriptionValue === (project.description || '')) {
+      setEditingDescription(false)
+      return
+    }
+
+    try {
+      setUpdatingDescription(true)
+      setError(null)
+      
+      const updatedProject = await apiClient.updateProject(id, { description: descriptionValue })
+      setProject(updatedProject)
+      setEditingDescription(false)
+    } catch (err) {
+      console.error('Failed to update project description:', err)
+      setError(err.message || 'Failed to update project description')
+    } finally {
+      setUpdatingDescription(false)
+    }
+  }
+
+  const handleDescriptionKeyDown = (e) => {
+    if (e.key === 'Escape') {
+      handleDescriptionCancel()
+    }
+    // Allow Ctrl+Enter or Cmd+Enter to save for textarea
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      handleDescriptionSave()
     }
   }
 
@@ -240,6 +400,28 @@ const ProjectDetails = () => {
         </div>
       )}
       <div className="project-header">
+        {/* More Options Menu */}
+        <div className="project-details-menu" ref={menuRef}>
+          <button
+            className="project-menu-button"
+            onClick={handleMenuToggle}
+            title="More options"
+            aria-label="More options"
+          >
+            <span className="menu-icon">⋮</span>
+          </button>
+          {showMenu && (
+            <div className="project-menu-dropdown">
+              <button
+                className="project-menu-item delete-item"
+                onClick={handleDeleteProject}
+                disabled={deleting}
+              >
+                {deleting ? 'Deleting...' : 'Delete Project'}
+              </button>
+            </div>
+          )}
+        </div>
         <button onClick={handleBackToProjects} className="back-button">
           ← Back to Projects
         </button>
@@ -296,7 +478,51 @@ const ProjectDetails = () => {
         </div>
         
         <div className="project-title-section">
-          <h1 className="project-title">{project.title}</h1>
+          <div className="project-title-container">
+            {editingTitle ? (
+              <div className="project-title-edit">
+                <input
+                  type="text"
+                  className="project-title-input"
+                  value={titleValue}
+                  onChange={(e) => setTitleValue(e.target.value)}
+                  onKeyDown={handleTitleKeyDown}
+                  disabled={updatingTitle}
+                  autoFocus
+                />
+                <div className="project-title-actions">
+                  <button
+                    className="title-save-button"
+                    onClick={handleTitleSave}
+                    disabled={updatingTitle || !titleValue.trim()}
+                    title="Save"
+                  >
+                    ✓
+                  </button>
+                  <button
+                    className="title-cancel-button"
+                    onClick={handleTitleCancel}
+                    disabled={updatingTitle}
+                    title="Cancel"
+                  >
+                    ✕
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="project-title-display">
+                <h1 className="project-title">{project.title}</h1>
+                <button
+                  className="title-edit-button"
+                  onClick={handleTitleEdit}
+                  title="Edit title"
+                  aria-label="Edit project title"
+                >
+                  <span className="edit-icon">✏️</span>
+                </button>
+              </div>
+            )}
+          </div>
           <div className="project-meta">
             <select
               value={project.status}
@@ -317,7 +543,54 @@ const ProjectDetails = () => {
           </div>
         </div>
         
-        <p className="project-description">{project.description}</p>
+        <div className="project-description-container">
+          {editingDescription ? (
+            <div className="project-description-edit">
+              <textarea
+                className="project-description-input"
+                value={descriptionValue}
+                onChange={(e) => setDescriptionValue(e.target.value)}
+                onKeyDown={handleDescriptionKeyDown}
+                disabled={updatingDescription}
+                rows={4}
+                placeholder="Enter project description..."
+                autoFocus
+              />
+              <div className="project-description-actions">
+                <button
+                  className="description-save-button"
+                  onClick={handleDescriptionSave}
+                  disabled={updatingDescription}
+                  title="Save"
+                >
+                  ✓ Save
+                </button>
+                <button
+                  className="description-cancel-button"
+                  onClick={handleDescriptionCancel}
+                  disabled={updatingDescription}
+                  title="Cancel"
+                >
+                  ✕ Cancel
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="project-description-display">
+              <p className="project-description">
+                {project.description || <span className="description-placeholder">No description</span>}
+              </p>
+              <button
+                className="description-edit-button"
+                onClick={handleDescriptionEdit}
+                title="Edit description"
+                aria-label="Edit project description"
+              >
+                <span className="edit-icon">✏️</span>
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
       <div className="project-content">
@@ -333,12 +606,6 @@ const ProjectDetails = () => {
             onClick={() => setActiveTab('pictures')}
           >
             📸 Pictures
-          </button>
-          <button 
-            className={`tab-button ${activeTab === 'videos' ? 'active' : ''}`}
-            onClick={() => setActiveTab('videos')}
-          >
-            🎥 Videos
           </button>
           <button 
             className={`tab-button ${activeTab === 'references' ? 'active' : ''}`}
@@ -360,18 +627,13 @@ const ProjectDetails = () => {
               tasks={project.tasks || []} 
               projectId={project.id}
               onUpdate={fetchProject}
+              onStatusUpdate={handleStatusChange}
+              currentStatus={project.status}
             />
           )}
           {activeTab === 'pictures' && (
             <ProjectPictures 
               pictures={project.pictures || []} 
-              projectId={project.id}
-              onUpdate={fetchProject}
-            />
-          )}
-          {activeTab === 'videos' && (
-            <ProjectVideos 
-              videos={project.videos || []} 
               projectId={project.id}
               onUpdate={fetchProject}
             />
@@ -386,11 +648,14 @@ const ProjectDetails = () => {
           {activeTab === 'materials' && (
             <ProjectMaterials 
               materials={project.materials || []} 
-              tools={project.tools || []} 
+              tools={project.tools || []}
+              projectId={project.id}
+              onUpdate={fetchProject}
             />
           )}
         </div>
       </div>
+
     </div>
   )
 }

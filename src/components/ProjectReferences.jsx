@@ -182,8 +182,8 @@ const ProjectReferences = ({ references = [], projectId, onUpdate }) => {
     ? references
     : references.filter(ref => ref.sourceType === filterType)
 
-  // Get unique source types for filter
-  const availableTypes = ['all', ...new Set(references.map(ref => ref.sourceType || 'other'))]
+  // Get all source types for filter (from sourceTypes array, not just existing references)
+  const availableTypes = ['all', ...sourceTypes.map(type => type.value)]
 
   if (!references || references.length === 0) {
     return (

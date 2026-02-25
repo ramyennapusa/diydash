@@ -1,0 +1,210 @@
+.account-page {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.account-card {
+  background: #fff;
+  border: 1px solid var(--diy-gray-200, #e9ecef);
+  border-radius: 12px;
+  padding: 1.5rem 1.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.account-header {
+  margin-bottom: 1.5rem;
+}
+
+.account-title {
+  margin: 0 0 0.25rem 0;
+  font-size: 1.35rem;
+  font-weight: 600;
+  color: var(--diy-text-primary, #2c3e50);
+}
+
+.account-subtitle {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--diy-text-secondary, #5a6c7d);
+}
+
+.account-message {
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.25rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+}
+
+.account-message--success {
+  background: rgba(39, 174, 96, 0.12);
+  color: #1e7b3d;
+}
+
+.account-message--error {
+  background: rgba(231, 76, 60, 0.12);
+  color: #c0392b;
+}
+
+.account-message--info {
+  background: rgba(52, 152, 219, 0.12);
+  color: #2471a3;
+}
+
+.account-section {
+  margin-bottom: 2rem;
+}
+
+.account-section:last-child {
+  margin-bottom: 0;
+}
+
+.account-section-title {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--diy-text-primary, #2c3e50);
+}
+
+.account-section--password {
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--diy-gray-200, #e9ecef);
+}
+
+.account-field {
+  margin-bottom: 1rem;
+}
+
+.account-field label {
+  display: block;
+  margin-bottom: 0.35rem;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--diy-text-secondary, #5a6c7d);
+}
+
+.account-input,
+.account-select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.9375rem;
+  border: 1px solid var(--diy-gray-300, #dee2e6);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--diy-text-primary, #2c3e50);
+}
+
+.account-input:focus,
+.account-select:focus {
+  outline: none;
+  border-color: var(--diy-primary, #d35400);
+  box-shadow: 0 0 0 2px rgba(211, 84, 0, 0.2);
+}
+
+.account-input--readonly {
+  background: var(--diy-gray-100, #f8f9fa);
+  color: var(--diy-text-secondary, #5a6c7d);
+  cursor: not-allowed;
+}
+
+.account-select {
+  cursor: pointer;
+  appearance: auto;
+}
+
+.account-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--diy-text-muted, #7f8c8d);
+}
+
+.account-field--row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.account-field-label-inline {
+  margin-bottom: 0 !important;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--diy-text-secondary, #5a6c7d);
+}
+
+.account-button-secondary {
+  padding: 0.4rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--diy-primary, #d35400);
+  background: transparent;
+  border: 1px solid var(--diy-primary, #d35400);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+.account-button-secondary:hover {
+  background: rgba(211, 84, 0, 0.08);
+  color: var(--diy-primary-dark, #a04000);
+}
+
+.account-password-expanded {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: var(--diy-gray-100, #f8f9fa);
+  border-radius: 8px;
+  border: 1px solid var(--diy-gray-200, #e9ecef);
+}
+
+.account-password-expanded .account-field {
+  margin-bottom: 0.75rem;
+}
+
+.account-password-expanded .account-field:last-of-type {
+  margin-bottom: 0;
+}
+
+.account-password-actions {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.account-password-actions .account-submit {
+  margin-top: 0;
+}
+
+.account-submit {
+  margin-top: 0.5rem;
+  padding: 0.5rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #fff;
+  background: var(--diy-primary, #d35400);
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.account-submit:hover:not(:disabled) {
+  background: var(--diy-primary-dark, #a04000);
+}
+
+.account-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+@media (max-width: 480px) {
+  .account-page {
+    padding: 1rem 0.75rem;
+  }
+
+  .account-card {
+    padding: 1.25rem 1rem;
+  }
+}

@@ -1,5 +1,5 @@
 .project-card {
-  background: #ffffff;
+  background: #fdfbf7;
   border-radius: 0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   overflow: hidden;
@@ -8,7 +8,7 @@
   height: 100%;
   display: flex;
   flex-direction: column;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #e8e2d8;
   position: relative;
 }
 
@@ -39,8 +39,8 @@
   font-weight: 500;
   text-transform: none;
   letter-spacing: 0;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid #e5e7eb;
+  background: rgba(253, 251, 247, 0.95);
+  border: 1px solid #e8e2d8;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
@@ -54,6 +54,13 @@
   background: #fef3c7;
   color: #92400e;
   border-color: #fde68a;
+  transition: all 0.3s ease;
+}
+
+/* Enhanced gradient for In Progress with task progress */
+.status-in-progress[style*="linear-gradient"] {
+  border-color: #10b981;
+  box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
 }
 
 .status-planning {
@@ -71,9 +78,9 @@
 }
 
 .status-default {
-  background: #f9fafb;
+  background: #f5f0e8;
   color: #6b7280;
-  border-color: #e5e7eb;
+  border-color: #e8e2d8;
 }
 
 .project-card-content {
@@ -83,9 +90,19 @@
   flex-direction: column;
 }
 
+.project-title-container {
+  margin-bottom: 0.5rem;
+}
+
+.project-title-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .project-card-content .project-title,
 h3.project-title {
-  margin: 0 0 0.5rem 0;
+  margin: 0;
   font-size: 1rem;
   font-weight: 600;
   color: #000000 !important;
@@ -93,6 +110,109 @@ h3.project-title {
   display: block;
   visibility: visible;
   opacity: 1;
+  flex: 1;
+}
+
+.card-edit-button {
+  background: #000000;
+  border: 1px solid #000000;
+  cursor: pointer;
+  padding: 0.375rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+}
+
+.card-edit-button:hover {
+  background: #1f2937;
+  border-color: #1f2937;
+}
+
+.card-edit-button .edit-icon {
+  font-size: 0.75rem;
+  filter: grayscale(100%) brightness(0) invert(1);
+  display: block;
+}
+
+.project-title-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.project-title-input {
+  flex: 1;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #000000;
+  border: 2px solid #f97316;
+  border-radius: 0.375rem;
+  padding: 0.375rem 0.5rem;
+  background: #fdfbf7;
+  min-width: 150px;
+}
+
+.project-title-input:focus {
+  outline: none;
+  border-color: #ea580c;
+  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1);
+}
+
+.project-title-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.project-title-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.title-save-button,
+.title-cancel-button {
+  background: #f97316;
+  color: white;
+  border: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.title-save-button:hover:not(:disabled) {
+  background: #ea580c;
+  transform: scale(1.1);
+}
+
+.title-save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.title-cancel-button {
+  background: #6b7280;
+}
+
+.title-cancel-button:hover:not(:disabled) {
+  background: #4b5563;
+  transform: scale(1.1);
+}
+
+.title-cancel-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .project-description {

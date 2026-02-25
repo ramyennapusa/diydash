@@ -1,8 +1,7 @@
 /* DIYDash Dashboard Component Styles */
 
 .dashboard {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
   padding: var(--diy-spacing-xl);
   min-height: 100vh;
   background-color: var(--diy-bg-secondary);
@@ -415,7 +414,7 @@
 /* Print styles */
 @media print {
   .dashboard {
-    background-color: white !important;
+    background-color: var(--diy-bg-primary) !important;
     color: black !important;
   }
   

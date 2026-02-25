@@ -1,26 +1,42 @@
 // API Client for DIY Dash React App
-// API Gateway URL configured for your deployment
+// Set VITE_API_BASE_URL in .env (e.g. .env.local) to override, or leave unset to use default.
+// Get your URL after deploy: cd diydash-infra/terraform && terraform output api_gateway_url
 
-const API_BASE_URL = 'https://xic1t3v249.execute-api.us-west-2.amazonaws.com/prod';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://xic1t3v249.execute-api.us-west-2.amazonaws.com/prod';
 
 class DIYDashAPI {
   constructor(baseUrl = API_BASE_URL) {
     this.baseUrl = baseUrl;
+    this.userEmail = null;
+  }
+
+  setUser(user) {
+    this.userEmail = user && user.email ? String(user.email).trim().toLowerCase() : null;
   }
 
   async request(endpoint, options = {}) {
     const url = `${this.baseUrl}${endpoint}`;
+    const method = (options.method || 'GET').toUpperCase();
+    const headers = { ...options.headers };
+    if (method !== 'GET') {
+      headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+    }
+    if (this.userEmail && !options.skipUserEmail) {
+      headers['X-User-Email'] = this.userEmail;
+    }
     const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
+      headers,
       ...options,
     };
 
     try {
       const response = await fetch(url, config);
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (_) {
+        data = { message: response.statusText || 'Invalid response' };
+      }
 
       if (!response.ok) {
         const errorMessage = data.message || data.error || `API request failed with status ${response.status}`;
@@ -33,19 +49,25 @@ class DIYDashAPI {
       return data;
     } catch (error) {
       console.error('API Error:', error);
-      // If it's already an Error object, re-throw it
+      if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
+        throw new Error(
+          'Cannot reach the server. Check that the API is deployed, the URL in src/services/api.js is correct, and CORS is enabled.'
+        );
+      }
       if (error instanceof Error) {
         throw error;
       }
-      // Otherwise, wrap it in an Error
       throw new Error(error.message || 'API request failed');
     }
   }
 
-  // Get all projects
+  // Get all projects (uses owner query param to avoid CORS preflight when X-User-Email not yet allowed)
   async getProjects(status = null) {
-    const queryParam = status && status !== 'All' ? `?status=${encodeURIComponent(status)}` : '';
-    return this.request(`/projects${queryParam}`);
+    const params = new URLSearchParams();
+    if (this.userEmail) params.set('owner', this.userEmail);
+    if (status && status !== 'All') params.set('status', status);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return this.request(`/projects${query}`, { skipUserEmail: true });
   }
 
   // Get single project by ID
@@ -97,6 +119,30 @@ class DIYDashAPI {
   async deleteProject(id) {
     return this.request(`/projects/${id}`, {
       method: 'DELETE',
+    });
+  }
+
+  // Create account (email + password). Account is unverified until user enters the 4-digit code.
+  async createAccount(email, password) {
+    return this.request('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ email: email.trim(), password }),
+    });
+  }
+
+  // Send 4-digit verification code to user's email (only for existing unverified accounts)
+  async sendVerificationCode(email) {
+    return this.request('/auth/send-code', {
+      method: 'POST',
+      body: JSON.stringify({ email: email.trim() }),
+    });
+  }
+
+  // Verify 4-digit code and complete registration
+  async verifyCode(email, code) {
+    return this.request('/auth/verify-code', {
+      method: 'POST',
+      body: JSON.stringify({ email: email.trim(), code: String(code).trim() }),
     });
   }
 

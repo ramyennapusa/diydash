@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import ProjectCard from './ProjectCard'
 import CreateProject from './CreateProject'
 import apiClient from '../services/api'
@@ -7,6 +8,7 @@ import './ProjectsList.css'
 const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop'
 
 function ProjectsList() {
+  const navigate = useNavigate()
   const [projects, setProjects] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -103,27 +105,73 @@ function ProjectsList() {
     const completed = projects.filter(p => p.status === 'Completed').length
     const inProgress = projects.filter(p => p.status === 'In Progress').length
     const planning = projects.filter(p => p.status === 'Planning').length
-    return { completed, inProgress, planning, total: projects.length }
+    const deleted = projects.filter(p => p.status === 'Deleted').length
+    const total = projects.filter(p => p.status !== 'Deleted').length
+    return { completed, inProgress, planning, deleted, total }
   }, [projects])
+
+  // Handle stat card click to filter projects
+  const handleStatClick = (statusType) => {
+    switch (statusType) {
+      case 'total':
+        // Show all projects (excluding Deleted)
+        setSelectedStatuses(new Set(['Planning', 'In Progress', 'Completed']))
+        break
+      case 'completed':
+        setSelectedStatuses(new Set(['Completed']))
+        break
+      case 'inProgress':
+        setSelectedStatuses(new Set(['In Progress']))
+        break
+      case 'planning':
+        setSelectedStatuses(new Set(['Planning']))
+        break
+      default:
+        break
+    }
+    // Close filter dropdown if open
+    setShowFilterDropdown(false)
+  }
+
+  // Check if a stat card is active (matches current filter)
+  const isStatActive = (statusType) => {
+    switch (statusType) {
+      case 'total':
+        // Active if showing all three statuses (Planning, In Progress, Completed)
+        return selectedStatuses.size === 3 && 
+               selectedStatuses.has('Planning') && 
+               selectedStatuses.has('In Progress') &&
+               selectedStatuses.has('Completed')
+      case 'completed':
+        return selectedStatuses.size === 1 && selectedStatuses.has('Completed')
+      case 'inProgress':
+        return selectedStatuses.size === 1 && selectedStatuses.has('In Progress')
+      case 'planning':
+        return selectedStatuses.size === 1 && selectedStatuses.has('Planning')
+      default:
+        return false
+    }
+  }
+
+  // Fetch projects from API
+  const fetchProjects = async () => {
+    try {
+      setIsLoading(true)
+      setError(null)
+      // Load all projects, filtering will be done client-side
+      const response = await apiClient.getProjects(null)
+      setProjects(response.projects || [])
+    } catch (err) {
+      console.error('Failed to load projects:', err)
+      setError(err.message || 'Failed to load projects')
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   // Load projects from API - load all projects, filter client-side
   useEffect(() => {
-    const loadProjects = async () => {
-      try {
-        setIsLoading(true)
-        setError(null)
-        // Load all projects, filtering will be done client-side
-        const response = await apiClient.getProjects(null)
-        setProjects(response.projects || [])
-      } catch (err) {
-        console.error('Failed to load projects:', err)
-        setError(err.message || 'Failed to load projects')
-      } finally {
-        setIsLoading(false)
-      }
-    }
-
-    loadProjects()
+    fetchProjects()
   }, [])
 
   const handleCreateProject = async (projectData) => {
@@ -136,6 +184,9 @@ function ProjectsList() {
       
       // Add the new project to the list
       setProjects(prev => [newProject, ...prev])
+      // Close modal and take user into the new project to add tasks or pictures
+      setShowCreateModal(false)
+      navigate(`/project/${newProject.id}`)
     } catch (err) {
       console.error('Failed to create project:', err)
       setError(err.message || 'Failed to create project')
@@ -172,19 +223,67 @@ function ProjectsList() {
       {/* Stats Container */}
       <div className="stats-container">
         <div className="stats-grid">
-          <div className="stat-card">
+          <div 
+            className={`stat-card clickable ${isStatActive('total') ? 'active' : ''}`}
+            onClick={() => handleStatClick('total')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleStatClick('total')
+              }
+            }}
+            aria-label="Show all projects"
+          >
             <div className="stat-number">{projectStats.total}</div>
             <div className="stat-label">Total Projects</div>
           </div>
-          <div className="stat-card">
+          <div 
+            className={`stat-card clickable ${isStatActive('completed') ? 'active' : ''}`}
+            onClick={() => handleStatClick('completed')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleStatClick('completed')
+              }
+            }}
+            aria-label="Show completed projects"
+          >
             <div className="stat-number">{projectStats.completed}</div>
             <div className="stat-label">Completed</div>
           </div>
-          <div className="stat-card">
+          <div 
+            className={`stat-card clickable ${isStatActive('inProgress') ? 'active' : ''}`}
+            onClick={() => handleStatClick('inProgress')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleStatClick('inProgress')
+              }
+            }}
+            aria-label="Show in progress projects"
+          >
             <div className="stat-number">{projectStats.inProgress}</div>
             <div className="stat-label">In Progress</div>
           </div>
-          <div className="stat-card">
+          <div 
+            className={`stat-card clickable ${isStatActive('planning') ? 'active' : ''}`}
+            onClick={() => handleStatClick('planning')}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault()
+                handleStatClick('planning')
+              }
+            }}
+            aria-label="Show planning projects"
+          >
             <div className="stat-number">{projectStats.planning}</div>
             <div className="stat-label">Planning</div>
           </div>
@@ -310,7 +409,7 @@ function ProjectsList() {
                 className="project-item"
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
-                <ProjectCard project={project} />
+                <ProjectCard project={project} onUpdate={fetchProjects} />
               </div>
             ))}
           </div>

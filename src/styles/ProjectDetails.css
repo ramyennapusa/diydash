@@ -1,8 +1,7 @@
 /* ProjectDetails.css - Responsive layout styling for project details page */
 
 .project-details {
-  max-width: 1200px;
-  margin: 0 auto;
+  width: 100%;
   padding: 2rem;
   min-height: 100vh;
 }
@@ -89,7 +88,90 @@
 
 /* Project Header */
 .project-header {
+  position: relative;
   margin-bottom: 3rem;
+}
+
+/* More Options Menu in Project Details */
+.project-details-menu {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 10;
+}
+
+.project-menu-button {
+  background: rgba(249, 115, 22, 0.1);
+  border: 1px solid rgba(249, 115, 22, 0.3);
+  border-radius: 0.375rem;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.project-menu-button:hover {
+  background: rgba(249, 115, 22, 0.15);
+  border-color: rgba(249, 115, 22, 0.5);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.menu-icon {
+  color: #f97316;
+  font-size: 1.25rem;
+  line-height: 1;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.project-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.25rem;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  min-width: 160px;
+  overflow: hidden;
+  z-index: 20;
+}
+
+.project-menu-item {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  text-align: left;
+  background: none;
+  border: none;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  display: block;
+}
+
+.project-menu-item:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.project-menu-item:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.project-menu-item.delete-item {
+  color: #dc2626;
+}
+
+.project-menu-item.delete-item:hover:not(:disabled) {
+  background: #fee2e2;
+  color: #991b1b;
 }
 
 /* Project Image Section */
@@ -195,6 +277,7 @@
 }
 
 .back-button {
+  margin-bottom: 2rem;
   background: linear-gradient(135deg, #f97316, #ea580c);
   color: white;
   border: none;
@@ -204,7 +287,6 @@
   font-weight: 500;
   cursor: pointer;
   transition: all 0.3s ease;
-  margin-bottom: 2rem;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -216,16 +298,161 @@
   box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
 }
 
+.delete-project-section {
+  margin-top: 3rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+  text-align: center;
+}
+
+.delete-project-button {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+}
+
+.delete-project-button:hover:not(:disabled) {
+  color: #dc2626;
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.delete-project-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .project-title-section {
   margin-bottom: 1.5rem;
+}
+
+.project-title-container {
+  margin-bottom: 1rem;
+}
+
+.project-title-display {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .project-title {
   font-size: clamp(2rem, 4vw, 3rem);
   font-weight: 700;
   color: #1f2937;
-  margin-bottom: 1rem;
+  margin: 0;
   line-height: 1.2;
+  flex: 1;
+}
+
+.title-edit-button {
+  background: #000000;
+  border: 1px solid #000000;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+}
+
+.title-edit-button:hover {
+  background: #1f2937;
+  border-color: #1f2937;
+}
+
+.title-edit-button .edit-icon {
+  font-size: 1rem;
+  filter: grayscale(100%) brightness(0) invert(1);
+  display: block;
+}
+
+.project-title-edit {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.project-title-input {
+  flex: 1;
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700;
+  color: #1f2937;
+  border: 2px solid #f97316;
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: white;
+  min-width: 200px;
+}
+
+.project-title-input:focus {
+  outline: none;
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.project-title-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.project-title-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.title-save-button,
+.title-cancel-button {
+  background: #f97316;
+  color: white;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.title-save-button:hover:not(:disabled) {
+  background: #ea580c;
+  transform: scale(1.1);
+}
+
+.title-save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.title-cancel-button {
+  background: #6b7280;
+}
+
+.title-cancel-button:hover:not(:disabled) {
+  background: #4b5563;
+  transform: scale(1.1);
+}
+
+.title-cancel-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .project-meta {
@@ -301,11 +528,142 @@
   gap: 0.5rem;
 }
 
+.project-description-container {
+  margin-bottom: 1rem;
+}
+
+.project-description-display {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
 .project-description {
   font-size: 1.125rem;
   line-height: 1.7;
   color: #4b5563;
   max-width: 800px;
+  margin: 0;
+  flex: 1;
+}
+
+.description-placeholder {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.description-edit-button {
+  background: #000000;
+  border: 1px solid #000000;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  margin-top: 0.25rem;
+}
+
+.description-edit-button:hover {
+  background: #1f2937;
+  border-color: #1f2937;
+}
+
+.description-edit-button .edit-icon {
+  font-size: 1rem;
+  filter: grayscale(100%) brightness(0) invert(1);
+  display: block;
+}
+
+.project-description-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 800px;
+}
+
+.project-description-input {
+  width: 100%;
+  font-size: 1.125rem;
+  line-height: 1.7;
+  color: #1f2937;
+  border: 2px solid #f97316;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  background: white;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 120px;
+}
+
+.project-description-input:focus {
+  outline: none;
+  border-color: #ea580c;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+.project-description-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.project-description-input::placeholder {
+  color: #9ca3af;
+}
+
+.project-description-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+}
+
+.description-save-button,
+.description-cancel-button {
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.description-save-button {
+  background: #f97316;
+  color: white;
+}
+
+.description-save-button:hover:not(:disabled) {
+  background: #ea580c;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(249, 115, 22, 0.3);
+}
+
+.description-save-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.description-cancel-button {
+  background: #6b7280;
+  color: white;
+}
+
+.description-cancel-button:hover:not(:disabled) {
+  background: #4b5563;
+  transform: translateY(-1px);
+}
+
+.description-cancel-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Project Content */
@@ -403,8 +761,62 @@
     font-size: 0.875rem;
   }
 
+  .delete-project-section {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+  }
+
+  .delete-project-button {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.8125rem;
+  }
+
   .project-title {
     font-size: 1.75rem;
+  }
+
+  .project-title-input {
+    font-size: 1.75rem;
+    padding: 0.375rem 0.75rem;
+  }
+
+  .title-edit-button {
+    width: 28px;
+    height: 28px;
+    padding: 0.375rem;
+  }
+
+  .title-edit-button .edit-icon {
+    font-size: 0.875rem;
+  }
+
+  .title-save-button,
+  .title-cancel-button {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+
+  .project-description-input {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+    min-height: 100px;
+  }
+
+  .description-edit-button {
+    width: 28px;
+    height: 28px;
+    padding: 0.375rem;
+  }
+
+  .description-edit-button .edit-icon {
+    font-size: 0.875rem;
+  }
+
+  .description-save-button,
+  .description-cancel-button {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.75rem;
   }
 
   .tab-content {

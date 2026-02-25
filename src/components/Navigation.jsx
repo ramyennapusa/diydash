@@ -1,9 +1,10 @@
 import { Link, useLocation, useParams } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import mockProjectDetails from '../data/mockProjectDetails'
+import UserMenu from './UserMenu'
 import './Navigation.css'
 
-function Navigation() {
+function Navigation({ user, onLogout }) {
   const location = useLocation()
   const { id } = useParams()
   const [projectTitle, setProjectTitle] = useState('')
@@ -28,6 +29,15 @@ function Navigation() {
         </div>
       )
     }
+    if (location.pathname === '/account') {
+      return (
+        <div className="breadcrumb">
+          <Link to="/" className="breadcrumb-link">Projects</Link>
+          <span className="breadcrumb-separator">›</span>
+          <span className="breadcrumb-current">Account</span>
+        </div>
+      )
+    }
     return null
   }
 
@@ -41,6 +51,7 @@ function Navigation() {
       
       <div className="nav-content">
         {renderBreadcrumb()}
+        {user && onLogout && <UserMenu user={user} onLogout={onLogout} />}
       </div>
     </nav>
   )
