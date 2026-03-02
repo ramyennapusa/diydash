@@ -82,6 +82,15 @@
   padding: var(--diy-spacing-lg);
 }
 
+.invite-landing {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  font-size: 1rem;
+  color: var(--diy-text-secondary, #6b7280);
+}
+
 /* Root container styles */
 #root {
   width: 100%;

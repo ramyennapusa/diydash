@@ -29,10 +29,16 @@
   object-fit: cover;
 }
 
-.project-status {
+.project-card-status-row {
   position: absolute;
   top: 0.75rem;
   right: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.project-status {
   padding: 0.25rem 0.625rem;
   border-radius: 0;
   font-size: 0.75rem;
@@ -42,6 +48,41 @@
   background: rgba(253, 251, 247, 0.95);
   border: 1px solid #e8e2d8;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.project-collab-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  line-height: 1;
+  padding: 0.15rem;
+  background: rgba(253, 251, 247, 0.95);
+  border: 1px solid #e8e2d8;
+  border-radius: 0.25rem;
+}
+
+.project-collab-icon-button {
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.project-collab-icon-button:hover {
+  background: rgba(255, 247, 237, 0.98);
+  border-color: #f97316;
+}
+
+.project-share-icon-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.05em;
+}
+
+.project-share-plus {
+  color: #475569;
+  font-size: 1em;
+  font-weight: 700;
+  line-height: 1;
 }
 
 .status-completed {

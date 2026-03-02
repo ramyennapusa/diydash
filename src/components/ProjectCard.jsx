@@ -17,6 +17,12 @@ function ProjectCard({ project, onUpdate }) {
     }
   }
 
+  const handleCollabIconClick = (e) => {
+    e.stopPropagation()
+    if (editingTitle) return
+    navigate(`/project/${project.id}`, { state: { openShare: true } })
+  }
+
   const handleTitleEdit = (e) => {
     e.stopPropagation()
     setTitleValue(project.title || '')
@@ -122,24 +128,50 @@ function ProjectCard({ project, onUpdate }) {
             e.target.src = DEFAULT_PROJECT_IMAGE
           }}
         />
-        <div 
-          className={`project-status ${getStatusColor(project.status)}`}
-          style={
-            project.status === 'In Progress' && taskProgress > 0
-              ? {
-                  background: `linear-gradient(90deg, #10b981 0%, #10b981 ${taskProgress}%, #fef3c7 ${taskProgress}%, #fef3c7 100%)`,
-                  color: taskProgress > 50 ? '#ffffff' : '#92400e',
-                  fontWeight: taskProgress > 50 ? '600' : '500'
-                }
-              : {}
-          }
-          title={
-            project.status === 'In Progress' && taskProgress > 0
-              ? `${taskProgress}% of tasks completed`
-              : project.status
-          }
-        >
-          {project.status}
+        <div className="project-card-status-row">
+          <div 
+            className={`project-status ${getStatusColor(project.status)}`}
+            style={
+              project.status === 'In Progress' && taskProgress > 0
+                ? {
+                    background: `linear-gradient(90deg, #10b981 0%, #10b981 ${taskProgress}%, #fef3c7 ${taskProgress}%, #fef3c7 100%)`,
+                    color: taskProgress > 50 ? '#ffffff' : '#92400e',
+                    fontWeight: taskProgress > 50 ? '600' : '500'
+                  }
+                : {}
+            }
+            title={
+              project.status === 'In Progress' && taskProgress > 0
+                ? `${taskProgress}% of tasks completed`
+                : project.status
+            }
+          >
+            {project.status}
+          </div>
+          {project.hasCollaborators ? (
+            <button
+              type="button"
+              className="project-collab-icon project-collab-icon-button"
+              title="Shared with others – open share"
+              aria-label="Open share project"
+              onClick={handleCollabIconClick}
+            >
+              👥
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="project-collab-icon project-collab-icon-button project-share-icon"
+              title="Share project"
+              aria-label="Share project"
+              onClick={handleCollabIconClick}
+            >
+              <span className="project-share-icon-inner">
+                <span className="project-share-person">👤</span>
+                <span className="project-share-plus">+</span>
+              </span>
+            </button>
+          )}
         </div>
       </div>
       

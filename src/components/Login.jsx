@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import apiClient from '../services/api'
+import { INVITE_TOKEN_KEY } from './InviteLanding'
 import './Login.css'
 
 function Login({ onLogin }) {
+  const navigate = useNavigate()
   const [isRegister, setIsRegister] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -49,6 +52,18 @@ function Login({ onLogin }) {
         setResendCooldown(60)
       } else if (onLogin) {
         onLogin({ email: trimmedEmail })
+        const inviteToken = sessionStorage.getItem(INVITE_TOKEN_KEY)
+        if (inviteToken) {
+          try {
+            const data = await apiClient.redeemInvite(inviteToken)
+            sessionStorage.removeItem(INVITE_TOKEN_KEY)
+            navigate(`/project/${data.projectId}`, { replace: true })
+            return
+          } catch (e) {
+            setError(e.message || 'Failed to join project.')
+            return
+          }
+        }
       }
     } catch (err) {
       setError(err.message || (isRegister ? 'Failed to create account or send verification code.' : 'Login failed. Please try again.'))
@@ -71,6 +86,18 @@ function Login({ onLogin }) {
       await apiClient.verifyCode(pendingVerificationEmail, code)
       if (onLogin) {
         onLogin({ email: pendingVerificationEmail })
+        const inviteToken = sessionStorage.getItem(INVITE_TOKEN_KEY)
+        if (inviteToken) {
+          try {
+            const data = await apiClient.redeemInvite(inviteToken)
+            sessionStorage.removeItem(INVITE_TOKEN_KEY)
+            navigate(`/project/${data.projectId}`, { replace: true })
+            return
+          } catch (e) {
+            setError(e.message || 'Failed to join project.')
+            return
+          }
+        }
       }
     } catch (err) {
       setError(err.message || 'Invalid or expired code. Please try again.')

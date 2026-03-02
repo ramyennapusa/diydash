@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import apiClient from '../services/api'
 import ProjectPictures from './ProjectPictures'
 import ProjectTasks from './ProjectTasks'
@@ -12,6 +12,7 @@ const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1568605114967-8
 const ProjectDetails = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const location = useLocation()
   const [project, setProject] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -27,6 +28,13 @@ const ProjectDetails = () => {
   const [updatingDescription, setUpdatingDescription] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  const [showCollaboratorsModal, setShowCollaboratorsModal] = useState(false)
+  const [collaboratorsList, setCollaboratorsList] = useState([])
+  const [pendingShareRequests, setPendingShareRequests] = useState([])
+  const [shareEmailFields, setShareEmailFields] = useState([{ email: '', permission: 'view' }])
+  const [shareAdding, setShareAdding] = useState(false)
+  const [shareRemoveLoading, setShareRemoveLoading] = useState(false)
+  const [shareError, setShareError] = useState(null)
   const menuRef = useRef(null)
 
   const fetchProject = async (showLoading = true) => {
@@ -55,6 +63,32 @@ const ProjectDetails = () => {
   useEffect(() => {
     if (id) {
       fetchProject()
+    }
+  }, [id])
+
+  useEffect(() => {
+    if (project && location.state?.openShare) {
+      setShowCollaboratorsModal(true)
+      setShareError(null)
+      setShareEmailFields([{ email: '', permission: 'view' }])
+      fetchCollaborators()
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [project, location.state?.openShare])
+
+  // Load collaborators for this project (for share modal + task assignment)
+  useEffect(() => {
+    if (id) {
+      const load = async () => {
+        try {
+          const res = await apiClient.getCollaborators(id)
+          setCollaboratorsList(res.collaborators || [])
+          setPendingShareRequests(res.pending || [])
+        } catch {
+          // Non-blocking; share modal can still refetch explicitly
+        }
+      }
+      load()
     }
   }, [id])
 
@@ -318,6 +352,117 @@ const ProjectDetails = () => {
     }
   }
 
+  const canManageCollaborators = project && (project.role === 'owner' || (project.role === 'collaborator' && project.collaboratorPermission === 'edit'))
+  const currentUserEmail = (() => {
+    try {
+      const u = JSON.parse(localStorage.getItem('diydash_user') || 'null')
+      return (u?.email || '').trim().toLowerCase()
+    } catch {
+      return ''
+    }
+  })()
+
+  const fetchCollaborators = async () => {
+    if (!id) return
+    try {
+      const res = await apiClient.getCollaborators(id)
+      setCollaboratorsList(res.collaborators || [])
+      setPendingShareRequests(res.pending || [])
+    } catch (err) {
+      setCollaboratorsList([])
+      setPendingShareRequests([])
+      setShareError(err.message || 'Failed to load collaborators')
+    }
+  }
+
+  const handleOpenCollaborators = () => {
+    setShowMenu(false)
+    setShowCollaboratorsModal(true)
+    setShareError(null)
+    setShareEmailFields([{ email: '', permission: 'view' }])
+    fetchCollaborators()
+  }
+
+  const handleShareEmailChange = (index, value) => {
+    setShareEmailFields(prev => prev.map((row, i) => (i === index ? { ...row, email: value } : row)))
+  }
+
+  const handleSharePermissionChange = (index, value) => {
+    setShareEmailFields(prev => prev.map((row, i) => (i === index ? { ...row, permission: value } : row)))
+  }
+
+  const handleAddMoreField = () => {
+    setShareEmailFields(prev => [...prev, { email: '', permission: 'view' }])
+    setShareError(null)
+  }
+
+  const handleRemoveShareField = (index) => {
+    if (shareEmailFields.length <= 1) return
+    setShareEmailFields(prev => prev.filter((_, i) => i !== index))
+  }
+
+  const handleAddCollaborator = async (e) => {
+    e.preventDefault()
+    const entries = shareEmailFields
+      .map(row => ({ email: row.email.trim().toLowerCase(), permission: row.permission || 'view' }))
+      .filter(row => row.email.length > 0)
+    const seen = new Set()
+    const deduped = entries.filter(row => {
+      if (seen.has(row.email)) return false
+      seen.add(row.email)
+      return true
+    })
+    if (deduped.length === 0) return
+    try {
+      setShareAdding(true)
+      setShareError(null)
+      const failed = []
+      for (const { email, permission } of deduped) {
+        try {
+          await apiClient.addCollaborator(id, { email, permission })
+        } catch (err) {
+          failed.push({ email, message: err.message })
+        }
+      }
+      await fetchCollaborators()
+      await fetchProject(false)
+      if (failed.length > 0) {
+        const msg = failed.length === deduped.length
+          ? (failed[0]?.message || 'Failed to add')
+          : `Added ${deduped.length - failed.length}. Failed: ${failed.map(f => f.email).join(', ')}`
+        setShareError(msg)
+      } else {
+        setShareEmailFields([{ email: '', permission: 'view' }])
+      }
+    } catch (err) {
+      setShareError(err.message || 'Failed to add collaborators')
+    } finally {
+      setShareAdding(false)
+    }
+  }
+
+  const hasAnyShareEmail = shareEmailFields.some(row => (row.email || '').trim().length > 0)
+
+  const handleRemoveCollaborator = async (email) => {
+    const isRemovingSelf = email && email.toLowerCase() === currentUserEmail
+    try {
+      setShareRemoveLoading(true)
+      setShareError(null)
+      await apiClient.removeCollaborator(id, email)
+      if (isRemovingSelf) {
+        setShowCollaboratorsModal(false)
+        navigate('/')
+        return
+      }
+      await fetchCollaborators()
+      await fetchProject(false)
+    } catch (err) {
+      setShareError(err.message || 'Failed to remove collaborator')
+    } finally {
+      setShareRemoveLoading(false)
+    }
+  }
+
   const getStatusColor = (status) => {
     switch (status) {
       case 'Completed':
@@ -412,6 +557,14 @@ const ProjectDetails = () => {
           </button>
           {showMenu && (
             <div className="project-menu-dropdown">
+              {(project.role === 'owner' || project.role === 'collaborator') && (
+                <button
+                  className="project-menu-item"
+                  onClick={handleOpenCollaborators}
+                >
+                  Share project
+                </button>
+              )}
               <button
                 className="project-menu-item delete-item"
                 onClick={handleDeleteProject}
@@ -593,6 +746,124 @@ const ProjectDetails = () => {
         </div>
       </div>
 
+      {showCollaboratorsModal && (
+        <div className="collaborators-modal-overlay" onClick={() => setShowCollaboratorsModal(false)}>
+          <div className="collaborators-modal" onClick={e => e.stopPropagation()}>
+            <div className="collaborators-modal-header">
+              <h3>Share project</h3>
+              <button type="button" className="collaborators-modal-close" onClick={() => setShowCollaboratorsModal(false)} aria-label="Close">×</button>
+            </div>
+            {shareError && (
+              <div className="collaborators-error">
+                <span>{shareError}</span>
+                <button type="button" onClick={() => setShareError(null)}>×</button>
+              </div>
+            )}
+            {canManageCollaborators && (
+              <form className="collaborators-add-form" onSubmit={handleAddCollaborator}>
+                <div className="collaborators-email-fields">
+                  {shareEmailFields.map((row, index) => (
+                    <div key={index} className="collaborators-email-row">
+                      <input
+                        type="text"
+                        inputMode="email"
+                        placeholder="Collaborator email"
+                        value={row.email}
+                        onChange={e => handleShareEmailChange(index, e.target.value)}
+                        className="collaborators-email-input"
+                      />
+                      <select
+                        value={row.permission || 'view'}
+                        onChange={e => handleSharePermissionChange(index, e.target.value)}
+                        className="collaborators-permission-select"
+                        title="Access"
+                      >
+                        <option value="view">View only</option>
+                        <option value="edit">Full access</option>
+                      </select>
+                      {shareEmailFields.length > 1 && (
+                        <button
+                          type="button"
+                          className="collaborators-remove-field-btn"
+                          onClick={() => handleRemoveShareField(index)}
+                          aria-label="Remove field"
+                          title="Remove"
+                        >
+                          ×
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div className="collaborators-add-row">
+                  <button type="submit" disabled={shareAdding || shareRemoveLoading || !hasAnyShareEmail} className="collaborators-add-btn">
+                    {shareAdding ? 'Adding...' : 'Add'}
+                  </button>
+                  <button type="button" className="collaborators-add-more-btn" onClick={handleAddMoreField} disabled={shareAdding || shareRemoveLoading}>
+                    Add more
+                  </button>
+                </div>
+              </form>
+            )}
+            <div className="collaborators-list">
+              <h4>Everyone with access</h4>
+              <ul>
+                {project.ownerEmail && (
+                  <li key="owner" className="collaborators-list-item collaborators-list-item-owner">
+                    <span className="collaborators-email">{project.ownerEmail}</span>
+                    <span className="collaborators-permission collaborators-permission-owner">Owner</span>
+                  </li>
+                )}
+                {collaboratorsList.map(c => (
+                  <li key={c.email} className="collaborators-list-item">
+                    <span className="collaborators-email">{c.email}</span>
+                    <span className="collaborators-permission">{c.permission === 'edit' ? 'Full access' : 'View only'}</span>
+                      {(project.role === 'owner' || (c.email && c.email.toLowerCase() === currentUserEmail)) && (
+                        <button
+                          type="button"
+                          className="collaborators-remove-btn"
+                          onClick={() => handleRemoveCollaborator(c.email)}
+                          disabled={shareAdding || shareRemoveLoading}
+                          title={c.email && c.email.toLowerCase() === currentUserEmail ? 'Leave project' : 'Remove'}
+                        >
+                          {c.email && c.email.toLowerCase() === currentUserEmail ? 'Leave project' : 'Remove'}
+                        </button>
+                      )}
+                  </li>
+                ))}
+              </ul>
+              {!project.ownerEmail && collaboratorsList.length === 0 && pendingShareRequests.length === 0 && (
+                <p className="collaborators-empty">No one has access yet.</p>
+              )}
+              {pendingShareRequests.length > 0 && (
+                <>
+                  <h4 className="collaborators-pending-title">Pending</h4>
+                  <ul>
+                    {pendingShareRequests.map((p) => (
+                      <li key={p.email} className="collaborators-list-item collaborators-list-item-pending">
+                        <span className="collaborators-email">{p.email}</span>
+                        <span className="collaborators-permission">{p.permission === 'edit' ? 'Full access' : 'View only'}</span>
+                        {project.role === 'owner' && (
+                          <button
+                            type="button"
+                            className="collaborators-remove-btn"
+                            onClick={() => handleRemoveCollaborator(p.email)}
+                            disabled={shareAdding || shareRemoveLoading}
+                            title="Cancel request"
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="project-content">
         <nav className="project-tabs">
           <button 
@@ -629,6 +900,13 @@ const ProjectDetails = () => {
               onUpdate={fetchProject}
               onStatusUpdate={handleStatusChange}
               currentStatus={project.status}
+              isShared={collaboratorsList.length > 0}
+              collaborators={[
+                ...(project.ownerEmail ? [{ email: project.ownerEmail, label: project.ownerEmail.toLowerCase() === currentUserEmail ? 'You (owner)' : 'Owner' }] : []),
+                ...(collaboratorsList || [])
+                  .filter(c => c.email && c.email.toLowerCase() !== (project.ownerEmail || '').toLowerCase())
+                  .map(c => ({ email: c.email, label: c.email.toLowerCase() === currentUserEmail ? 'You' : c.email }))
+              ]}
             />
           )}
           {activeTab === 'pictures' && (

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import '../styles/ProjectTasks.css'
 import apiClient from '../services/api'
 
-const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusUpdate, currentStatus }) => {
+const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusUpdate, currentStatus, isShared = false, collaborators = [] }) => {
   const [tasks, setTasks] = useState(initialTasks)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -15,7 +15,21 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
   const [hasShownCompletionPrompt, setHasShownCompletionPrompt] = useState(false)
   const [showUncompleteModal, setShowUncompleteModal] = useState(false)
   const [hasShownUncompletePrompt, setHasShownUncompletePrompt] = useState(false)
+  const [assignDropdownTaskId, setAssignDropdownTaskId] = useState(null)
+  const [assigningTaskId, setAssigningTaskId] = useState(null)
   const textareaRef = useRef(null)
+
+  const taskToPayload = (task) => ({
+    id: task.id,
+    title: task.title,
+    description: task.description || '',
+    completed: task.completed || false,
+    order: task.order ?? 0,
+    estimatedTime: task.estimatedTime || '',
+    difficulty: task.difficulty || 'Beginner',
+    category: task.category || 'Planning',
+    assignee: task.assignee || ''
+  })
 
   // Fetch tasks from API
   const fetchTasks = async () => {
@@ -145,16 +159,7 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
       // Update backend with the new completion status
       const taskToUpdate = updatedTasks.find(t => t.id === taskId)
       if (taskToUpdate) {
-        const updatedProjectTasks = updatedTasks.map(task => ({
-          id: task.id,
-          title: task.title,
-          description: task.description || '',
-          completed: task.completed || false,
-          order: task.order || 0,
-          estimatedTime: task.estimatedTime || '',
-          difficulty: task.difficulty || 'Beginner',
-          category: task.category || 'Planning'
-        }))
+        const updatedProjectTasks = updatedTasks.map(taskToPayload)
 
         await apiClient.updateProject(projectId, { tasks: updatedProjectTasks })
         
@@ -248,16 +253,7 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
       setTasks(reorderedTasks)
 
       // Update backend - remove task and reorder remaining tasks
-      const updatedProjectTasks = reorderedTasks.map(task => ({
-        id: task.id,
-        title: task.title,
-        description: task.description || '',
-        completed: task.completed || false,
-        order: task.order,
-        estimatedTime: task.estimatedTime || '',
-        difficulty: task.difficulty || 'Beginner',
-        category: task.category || 'Planning'
-      }))
+      const updatedProjectTasks = reorderedTasks.map(taskToPayload)
 
       console.log('Sending updated tasks to backend:', updatedProjectTasks.map(t => ({ id: t.id, title: t.title })))
       const result = await apiClient.updateProject(projectId, { tasks: updatedProjectTasks })
@@ -340,16 +336,7 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
     try {
       // Update each task's order via the project update endpoint
       // The backend should handle syncing to the tasks table
-      const updatedProjectTasks = updatedTasks.map(task => ({
-        id: task.id,
-        title: task.title,
-        description: task.description || '',
-        completed: task.completed || false,
-        order: task.order,
-        estimatedTime: task.estimatedTime || '',
-        difficulty: task.difficulty || 'Beginner',
-        category: task.category || 'Planning'
-      }))
+      const updatedProjectTasks = updatedTasks.map(taskToPayload)
       
       console.log('Updating task order:', updatedProjectTasks.map(t => ({ id: t.id, order: t.order })))
       
@@ -376,8 +363,25 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
     }
   }
 
-
-
+  const handleAssignTask = async (taskId, email) => {
+    if (!projectId) return
+    setAssignDropdownTaskId(null)
+    const task = tasks.find(t => t.id === taskId)
+    if (!task) return
+    const previousTasks = tasks
+    const updatedTasks = tasks.map(t => t.id === taskId ? { ...t, assignee: email || '' } : t)
+    setTasks(updatedTasks)
+    try {
+      setAssigningTaskId(taskId)
+      const updatedProjectTasks = updatedTasks.map(taskToPayload)
+      await apiClient.updateProject(projectId, { tasks: updatedProjectTasks })
+    } catch (err) {
+      setTasks(previousTasks)
+      alert(err.message || 'Failed to assign task.')
+    } finally {
+      setAssigningTaskId(null)
+    }
+  }
 
   if (loading) {
     return (
@@ -488,6 +492,13 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
                   isCompleted={taskStates[task.id] || false}
                   onToggle={() => handleTaskToggle(task.id)}
                   onDelete={() => handleDeleteTask(task.id)}
+                  isShared={isShared}
+                  collaborators={collaborators}
+                  onAssign={handleAssignTask}
+                  assignDropdownOpen={assignDropdownTaskId === task.id}
+                  onAssignDropdownToggle={() => setAssignDropdownTaskId(prev => prev === task.id ? null : task.id)}
+                  onAssignDropdownClose={() => setAssignDropdownTaskId(null)}
+                  isAssigning={assigningTaskId === task.id}
                 />
               </div>
             ))
@@ -577,7 +588,22 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
 }
 
 // Separate TaskItem component for better organization
-const TaskItem = ({ task, isCompleted, onToggle, onDelete }) => {
+const TaskItem = ({ task, isCompleted, onToggle, onDelete, isShared, collaborators = [], onAssign, assignDropdownOpen, onAssignDropdownToggle, onAssignDropdownClose, isAssigning }) => {
+  const assignWrapperRef = useRef(null)
+  const assigneeLabel = task.assignee && collaborators.find(c => (c.email || '').toLowerCase() === (task.assignee || '').toLowerCase())
+  const assigneeEmail = (task.assignee || '').trim()
+  const hasAssignee = !!assigneeEmail
+  const assigneeInitial = hasAssignee ? assigneeEmail.charAt(0).toUpperCase() : ''
+
+  useEffect(() => {
+    if (!assignDropdownOpen || !onAssignDropdownClose) return
+    const close = (e) => {
+      if (assignWrapperRef.current && !assignWrapperRef.current.contains(e.target)) onAssignDropdownClose()
+    }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [assignDropdownOpen, onAssignDropdownClose])
+
   return (
     <div className={`task-item ${isCompleted ? 'completed' : ''}`}>
       <div className="task-drag-handle">⋮⋮</div>
@@ -608,6 +634,45 @@ const TaskItem = ({ task, isCompleted, onToggle, onDelete }) => {
         
         <p className="task-description">{task.description}</p>
       </div>
+
+      {isShared && (
+        <div className="task-assign-wrapper" ref={assignWrapperRef}>
+          {assignDropdownOpen && (
+            <div className="task-assign-dropdown" role="listbox">
+              <button
+                type="button"
+                className="task-assign-option"
+                onClick={() => onAssign(task.id, '')}
+                role="option"
+              >
+                Unassigned
+              </button>
+              {collaborators.map(c => (
+                <button
+                  key={c.email}
+                  type="button"
+                  className="task-assign-option"
+                  onClick={() => onAssign(task.id, c.email)}
+                  role="option"
+                  disabled={isAssigning}
+                >
+                  {c.label || c.email}
+                </button>
+              ))}
+            </div>
+          )}
+          <button
+            type="button"
+            className="task-assign-button"
+            onClick={(e) => { e.stopPropagation(); onAssignDropdownToggle(); }}
+            title={hasAssignee ? assigneeEmail : 'Assign to collaborator'}
+            aria-label={hasAssignee ? `Change assignee (${assigneeEmail})` : 'Assign to collaborator'}
+            aria-expanded={assignDropdownOpen}
+          >
+            {hasAssignee ? assigneeInitial : '👤'}
+          </button>
+        </div>
+      )}
       
       <button
         className="task-delete-button"

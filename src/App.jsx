@@ -4,6 +4,7 @@ import './App.css'
 import apiClient from './services/api'
 import Navigation from './components/Navigation'
 import Login from './components/Login'
+import InviteLanding from './components/InviteLanding'
 import Dashboard from './components/Dashboard'
 import ProjectsList from './components/ProjectsList'
 import ProjectDetails from './components/ProjectDetails'
@@ -97,6 +98,7 @@ function App() {
                   )
                 }
               />
+              <Route path="/invite" element={<InviteLanding user={user} />} />
             </Routes>
           </main>
         </ErrorBoundary>

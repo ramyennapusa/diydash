@@ -260,6 +260,47 @@ class DIYDashAPI {
     const pictures = (project.pictures || []).filter(pic => pic.id !== pictureId);
     return this.updateProject(projectId, { pictures });
   }
+
+  // Collaborators: list, add, remove (permission: 'view' | 'edit')
+  async getCollaborators(projectId) {
+    return this.request(`/projects/${projectId}/collaborators`);
+  }
+
+  async addCollaborator(projectId, { email, permission }) {
+    return this.request(`/projects/${projectId}/collaborators`, {
+      method: 'POST',
+      body: JSON.stringify({ email: email.trim(), permission: permission === 'edit' ? 'edit' : 'view' }),
+    });
+  }
+
+  async removeCollaborator(projectId, email) {
+    const normalized = String(email || '').trim().toLowerCase();
+    const encoded = encodeURIComponent(normalized);
+    return this.request(`/projects/${projectId}/collaborators/${encoded}`, { method: 'DELETE' });
+  }
+
+  // Redeem invite token (after signup/login). Returns { projectId }.
+  async redeemInvite(token) {
+    return this.request('/invite/redeem', {
+      method: 'POST',
+      body: JSON.stringify({ token: String(token).trim() }),
+    });
+  }
+
+  // Collaboration requests (pending invite to a project – accept or decline)
+  async acceptCollaborationRequest(projectId) {
+    return this.request('/collaboration-requests/accept', {
+      method: 'POST',
+      body: JSON.stringify({ projectId: String(projectId).trim() }),
+    });
+  }
+
+  async declineCollaborationRequest(projectId) {
+    return this.request('/collaboration-requests/decline', {
+      method: 'POST',
+      body: JSON.stringify({ projectId: String(projectId).trim() }),
+    });
+  }
 }
 
 // Export singleton instance

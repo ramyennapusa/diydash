@@ -10,8 +10,10 @@ const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1568605114967-8
 function ProjectsList() {
   const navigate = useNavigate()
   const [projects, setProjects] = useState([])
+  const [pendingCollaborationRequests, setPendingCollaborationRequests] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [respondingToRequest, setRespondingToRequest] = useState(null)
   // By default, exclude "Completed" and "Deleted" - only show Planning and In Progress
   const [selectedStatuses, setSelectedStatuses] = useState(new Set(['Planning', 'In Progress']))
   const [sortBy, setSortBy] = useState('newest')
@@ -161,6 +163,7 @@ function ProjectsList() {
       // Load all projects, filtering will be done client-side
       const response = await apiClient.getProjects(null)
       setProjects(response.projects || [])
+      setPendingCollaborationRequests(response.pendingCollaborationRequests || [])
     } catch (err) {
       console.error('Failed to load projects:', err)
       setError(err.message || 'Failed to load projects')
@@ -173,6 +176,30 @@ function ProjectsList() {
   useEffect(() => {
     fetchProjects()
   }, [])
+
+  const handleAcceptCollaboration = async (projectId) => {
+    try {
+      setRespondingToRequest(projectId)
+      await apiClient.acceptCollaborationRequest(projectId)
+      await fetchProjects()
+    } catch (err) {
+      console.error('Failed to accept collaboration:', err)
+    } finally {
+      setRespondingToRequest(null)
+    }
+  }
+
+  const handleDeclineCollaboration = async (projectId) => {
+    try {
+      setRespondingToRequest(projectId)
+      await apiClient.declineCollaborationRequest(projectId)
+      setPendingCollaborationRequests(prev => prev.filter(r => r.projectId !== projectId))
+    } catch (err) {
+      console.error('Failed to decline collaboration:', err)
+    } finally {
+      setRespondingToRequest(null)
+    }
+  }
 
   const handleCreateProject = async (projectData) => {
     try {
@@ -289,6 +316,42 @@ function ProjectsList() {
           </div>
         </div>
       </div>
+
+      {/* Collaboration requests – accept before project appears on homepage */}
+      {pendingCollaborationRequests.length > 0 && (
+        <div className="collaboration-requests-banner">
+          <h3 className="collaboration-requests-title">Collaboration requests</h3>
+          <p className="collaboration-requests-intro">Someone wants to share a project with you. Accept to add it to your homepage, or decline.</p>
+          <ul className="collaboration-requests-list">
+            {pendingCollaborationRequests.map((req) => (
+              <li key={req.projectId} className="collaboration-request-item">
+                <span className="collaboration-request-text">
+                  <strong>{req.invitedBy || 'Someone'}</strong> invited you to collaborate on <strong>{req.projectTitle}</strong>
+                  {req.permission === 'edit' ? ' (full access)' : ' (view only)'}.
+                </span>
+                <span className="collaboration-request-actions">
+                  <button
+                    type="button"
+                    className="btn-accept-request"
+                    onClick={() => handleAcceptCollaboration(req.projectId)}
+                    disabled={respondingToRequest === req.projectId}
+                  >
+                    {respondingToRequest === req.projectId ? '…' : 'Accept'}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-decline-request"
+                    onClick={() => handleDeclineCollaboration(req.projectId)}
+                    disabled={respondingToRequest === req.projectId}
+                  >
+                    Decline
+                  </button>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {/* Projects Container */}
       <div className="projects-container">
