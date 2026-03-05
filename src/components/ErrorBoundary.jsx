@@ -24,7 +24,7 @@ class ErrorBoundary extends Component {
           <div className="error-boundary-content">
             <h2>🔧 Oops! Something went wrong</h2>
             <p>
-              DIYDash encountered an unexpected error. Don't worry - your projects are safe!
+              Draft2Done encountered an unexpected error. Don't worry - your projects are safe!
             </p>
             <details className="error-details">
               <summary>Error Details</summary>
@@ -34,7 +34,7 @@ class ErrorBoundary extends Component {
               className="error-boundary-button"
               onClick={() => window.location.reload()}
             >
-              🔄 Reload DIYDash
+              🔄 Reload Draft2Done
             </button>
           </div>
         </div>

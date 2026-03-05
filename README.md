@@ -1,6 +1,6 @@
-# DIYDash
+# Draft2Done
 
-DIYDash is a modern React dashboard application for managing DIY (Do It Yourself) projects and tasks. Built with React 18+ and Vite for fast development and optimized production builds.
+Draft2Done is a modern React dashboard application for managing DIY (Do It Yourself) projects and tasks. Built with React 18+ and Vite for fast development and optimized production builds.
 
 ## Features
 
@@ -19,7 +19,7 @@ DIYDash is a modern React dashboard application for managing DIY (Do It Yourself
 
 ### Installation
 
-1. Clone or download the DIYDash project
+1. Clone or download the Draft2Done project
 2. Navigate to the project directory:
    ```bash
    cd diydash

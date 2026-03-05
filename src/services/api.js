@@ -4,14 +4,21 @@
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://xic1t3v249.execute-api.us-west-2.amazonaws.com/prod';
 
+const STORAGE_KEY = 'diydash_user';
+
 class DIYDashAPI {
   constructor(baseUrl = API_BASE_URL) {
     this.baseUrl = baseUrl;
     this.userEmail = null;
+    this.onUnauthorized = null;
   }
 
   setUser(user) {
     this.userEmail = user && user.email ? String(user.email).trim().toLowerCase() : null;
+  }
+
+  setOnUnauthorized(callback) {
+    this.onUnauthorized = callback;
   }
 
   async request(endpoint, options = {}) {
@@ -39,6 +46,17 @@ class DIYDashAPI {
       }
 
       if (!response.ok) {
+        if (response.status === 401) {
+          try {
+            localStorage.removeItem(STORAGE_KEY);
+            const rawMsg = (data && data.message) ? data.message : 'User ID not found. Please create an account.';
+            const msg = rawMsg.includes('Account not found') || rawMsg.includes('You may have been removed')
+              ? 'User ID not found. Please create an account.'
+              : rawMsg;
+            sessionStorage.setItem('loginMessage', msg);
+          } catch (_) {}
+          this.onUnauthorized?.();
+        }
         const errorMessage = data.message || data.error || `API request failed with status ${response.status}`;
         const error = new Error(errorMessage);
         error.status = response.status;
@@ -59,6 +77,13 @@ class DIYDashAPI {
       }
       throw new Error(error.message || 'API request failed');
     }
+  }
+
+  // Check that a user exists (used on login before calling onLogin to avoid flashing homepage). Throws on 401.
+  async validateUser(email) {
+    const owner = String(email || '').trim().toLowerCase();
+    if (!owner) throw new Error('Email is required.');
+    return this.request(`/projects?owner=${encodeURIComponent(owner)}`, { skipUserEmail: true });
   }
 
   // Get all projects (uses owner query param to avoid CORS preflight when X-User-Email not yet allowed)

@@ -13,7 +13,7 @@ const renderWithRouter = (component) => {
 describe('Dashboard Component', () => {
   test('renders dashboard title', () => {
     renderWithRouter(<Dashboard />)
-    expect(screen.getByText('DIYDash')).toBeInTheDocument()
+    expect(screen.getByText('Draft2Done')).toBeInTheDocument()
   })
 
   test('renders dashboard subtitle', () => {
@@ -23,7 +23,7 @@ describe('Dashboard Component', () => {
 
   test('renders welcome section', () => {
     renderWithRouter(<Dashboard />)
-    expect(screen.getByText('Welcome to DIYDash!')).toBeInTheDocument()
+    expect(screen.getByText('Welcome to Draft2Done!')).toBeInTheDocument()
     expect(screen.getByText(/Organize, track, and manage all your DIY projects/)).toBeInTheDocument()
   })
 

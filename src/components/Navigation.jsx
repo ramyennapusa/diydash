@@ -45,7 +45,7 @@ function Navigation({ user, onLogout }) {
     <nav className="navigation">
       <div className="nav-brand">
         <Link to="/" className="nav-brand-link">
-          <h1>DIYDash</h1>
+          <h1>Draft2Done</h1>
         </Link>
       </div>
       

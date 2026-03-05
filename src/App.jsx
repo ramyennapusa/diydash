@@ -51,6 +51,11 @@ function App() {
     apiClient.setUser(user)
   }, [user])
 
+  useEffect(() => {
+    apiClient.setOnUnauthorized(handleLogout)
+    return () => apiClient.setOnUnauthorized(null)
+  }, [handleLogout])
+
   return (
     <Router>
       <div className="app">

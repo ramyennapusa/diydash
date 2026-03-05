@@ -3,8 +3,8 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "DIYDash - A React dashboard for DIY project management",
-  "author": "DIYDash Team",
+  "description": "Draft2Done - A React dashboard for DIY project management",
+  "author": "Draft2Done Team",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

@@ -5,17 +5,17 @@ function Dashboard() {
   return (
     <div className="dashboard">
       <header className="dashboard-header">
-        <h1 className="dashboard-title">DIYDash</h1>
+        <h1 className="dashboard-title">Draft2Done</h1>
         <p className="dashboard-subtitle">Your DIY Project Management Dashboard</p>
       </header>
       
       <main className="dashboard-content">
         <div className="welcome-section">
-          <h2>Welcome to DIYDash!</h2>
+          <h2>Welcome to Draft2Done!</h2>
           <p>
             Organize, track, and manage all your DIY projects in one place. 
             From woodworking to electronics, crafts to home improvement - 
-            DIYDash helps you stay organized and motivated.
+            Draft2Done helps you stay organized and motivated.
           </p>
           <div className="dashboard-actions">
             <Link to="/" className="btn btn-primary">

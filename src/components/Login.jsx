@@ -51,6 +51,12 @@ function Login({ onLogin }) {
         setToken('')
         setResendCooldown(60)
       } else if (onLogin) {
+        try {
+          await apiClient.validateUser(trimmedEmail)
+        } catch (e) {
+          setError(e.message || 'User ID not found. Please create an account.')
+          return
+        }
         onLogin({ email: trimmedEmail })
         const inviteToken = sessionStorage.getItem(INVITE_TOKEN_KEY)
         if (inviteToken) {
@@ -134,6 +140,14 @@ function Login({ onLogin }) {
   }
 
   useEffect(() => {
+    const msg = sessionStorage.getItem('loginMessage')
+    if (msg) {
+      sessionStorage.removeItem('loginMessage')
+      setError(msg)
+    }
+  }, [])
+
+  useEffect(() => {
     if (resendCooldown <= 0) return
     const t = setInterval(() => setResendCooldown((c) => (c <= 1 ? 0 : c - 1)), 1000)
     return () => clearInterval(t)
@@ -144,7 +158,7 @@ function Login({ onLogin }) {
       <div className="login-page">
         <div className="login-card">
           <div className="login-header">
-            <h1 className="login-title">DIYDash</h1>
+            <h1 className="login-title">Draft2Done</h1>
             <p className="login-subtitle">Check your email</p>
           </div>
 
@@ -221,7 +235,7 @@ function Login({ onLogin }) {
     <div className="login-page">
       <div className="login-card">
         <div className="login-header">
-          <h1 className="login-title">DIYDash</h1>
+          <h1 className="login-title">Draft2Done</h1>
           <p className="login-subtitle">
             {isRegister ? 'Create an account to get started' : 'Sign in to manage your DIY projects'}
           </p>

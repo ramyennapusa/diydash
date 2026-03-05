@@ -9,7 +9,7 @@ import ProjectDetails from './components/ProjectDetails'
 describe('App Component', () => {
   test('renders without crashing', () => {
     render(<App />)
-    expect(screen.getByText('DIYDash')).toBeInTheDocument()
+    expect(screen.getByText('Draft2Done')).toBeInTheDocument()
   })
 
   test('renders ProjectsList component on default route', () => {
@@ -32,6 +32,6 @@ describe('App Component', () => {
         </div>
       </MemoryRouter>
     )
-    expect(screen.getByText('Welcome to DIYDash!')).toBeInTheDocument()
+    expect(screen.getByText('Welcome to Draft2Done!')).toBeInTheDocument()
   })
 })
