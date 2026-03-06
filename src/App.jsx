@@ -97,7 +97,7 @@ function App() {
                 path="/account"
                 element={
                   isLoggedIn ? (
-                    <Account user={user} onProfileUpdate={handleProfileUpdate} />
+                    <Account user={user} onProfileUpdate={handleProfileUpdate} onLogout={handleLogout} />
                   ) : (
                     <Navigate to="/" replace />
                   )

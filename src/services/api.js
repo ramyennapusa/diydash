@@ -171,6 +171,15 @@ class DIYDashAPI {
     });
   }
 
+  // Delete current user account (requires X-User-Email from setUser). Clears session on success.
+  async deleteAccount() {
+    const result = await this.request('/auth/account', { method: 'DELETE' });
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (_) {}
+    return result;
+  }
+
   // Update project status
   async updateProjectStatus(id, status) {
     return this.updateProject(id, { status });

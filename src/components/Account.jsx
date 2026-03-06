@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import apiClient from '../services/api'
 import './Account.css'
 
 const COUNTRY_OPTIONS = [
@@ -204,7 +205,7 @@ const COUNTRY_OPTIONS = [
   { value: 'ZW', label: 'Zimbabwe' },
 ]
 
-function Account({ user, onProfileUpdate }) {
+function Account({ user, onProfileUpdate, onLogout }) {
   const [name, setName] = useState(user?.name ?? '')
   const [country, setCountry] = useState(user?.country ?? '')
   const [newPassword, setNewPassword] = useState('')
@@ -213,6 +214,8 @@ function Account({ user, onProfileUpdate }) {
   const [message, setMessage] = useState({ type: '', text: '' })
   const [saving, setSaving] = useState(false)
   const [passwordSaving, setPasswordSaving] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => {
     setName(user?.name ?? '')
@@ -264,6 +267,20 @@ function Account({ user, onProfileUpdate }) {
     setNewPassword('')
     setConfirmPassword('')
     setMessage({ type: '', text: '' })
+  }
+
+  const handleDeleteAccount = async () => {
+    setShowDeleteConfirm(false)
+    setDeleting(true)
+    setMessage({ type: '', text: '' })
+    try {
+      await apiClient.deleteAccount()
+      onLogout?.()
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message || 'Failed to delete account.' })
+    } finally {
+      setDeleting(false)
+    }
   }
 
   return (
@@ -381,6 +398,38 @@ function Account({ user, onProfileUpdate }) {
             {saving ? 'Saving…' : 'Save profile'}
           </button>
         </form>
+
+        <section className="account-section account-section--danger" aria-label="Delete account">
+          <h2 className="account-section-title">Delete account</h2>
+          <p className="account-hint">
+            Permanently delete your account and all associated data. This cannot be undone.
+          </p>
+          <button
+            type="button"
+            className="account-button-danger"
+            disabled={deleting}
+            onClick={() => setShowDeleteConfirm(true)}
+          >
+            {deleting ? 'Deleting…' : 'Delete account'}
+          </button>
+        </section>
+
+        {showDeleteConfirm && (
+          <div className="account-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="delete-account-title">
+            <div className="account-modal">
+              <h2 id="delete-account-title" className="account-section-title">Delete account?</h2>
+              <p>Your account and data will be permanently removed. You will need to create a new account to use the app again.</p>
+              <div className="account-password-actions">
+                <button type="button" className="account-button-secondary" onClick={() => setShowDeleteConfirm(false)}>
+                  Cancel
+                </button>
+                <button type="button" className="account-button-danger" disabled={deleting} onClick={handleDeleteAccount}>
+                  {deleting ? 'Deleting…' : 'Delete my account'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

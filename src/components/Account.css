@@ -199,6 +199,72 @@
   cursor: not-allowed;
 }
 
+.account-section--danger {
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--diy-gray-200, #e9ecef);
+}
+
+.account-section--danger .account-hint {
+  margin-bottom: 0.75rem;
+}
+
+.account-button-danger {
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #fff;
+  background: #c0392b;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.account-button-danger:hover:not(:disabled) {
+  background: #a93226;
+}
+
+.account-button-danger:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.account-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.account-modal {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  max-width: 400px;
+  width: 100%;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.account-modal .account-section-title {
+  margin-top: 0;
+}
+
+.account-modal p {
+  margin: 0 0 1.25rem 0;
+  font-size: 0.9375rem;
+  color: var(--diy-text-secondary, #5a6c7d);
+}
+
+.account-modal .account-password-actions {
+  margin-top: 0;
+  justify-content: flex-end;
+}
+
 @media (max-width: 480px) {
   .account-page {
     padding: 1rem 0.75rem;
