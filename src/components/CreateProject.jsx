@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import './CreateProject.css'
 
-const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop'
+const DEFAULT_PROJECT_IMAGE = '/draft2done-login-bg.png'
 
 function CreateProject({ onClose, onCreateProject, isCreating = false }) {
   const [formData, setFormData] = useState({

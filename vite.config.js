@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   
-  // Development server configuration for DIYDash
+  // Development server configuration for Draft2Done
   server: {
     port: 3000,
     host: true, // Allow external connections

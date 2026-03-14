@@ -1,12 +1,19 @@
-// API Client for DIY Dash React App
-// Set VITE_API_BASE_URL in .env (e.g. .env.local) to override, or leave unset to use default.
-// Get your URL after deploy: cd diydash-infra/terraform && terraform output api_gateway_url
+// API Client for Draft2Done. Auth is Cognito-only; set VITE_API_BASE_URL and VITE_COGNITO_* in .env.
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://xic1t3v249.execute-api.us-west-2.amazonaws.com/prod';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || '';
 
-const STORAGE_KEY = 'diydash_user';
+const STORAGE_KEY = 'draft2done_user';
 
-class DIYDashAPI {
+async function getIdToken() {
+  try {
+    const { auth } = await import('./auth');
+    return auth.getIdToken();
+  } catch {
+    return null;
+  }
+}
+
+class Draft2DoneAPI {
   constructor(baseUrl = API_BASE_URL) {
     this.baseUrl = baseUrl;
     this.userEmail = null;
@@ -27,6 +34,10 @@ class DIYDashAPI {
     const headers = { ...options.headers };
     if (method !== 'GET') {
       headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+    }
+    const idToken = await getIdToken();
+    if (idToken) {
+      headers['Authorization'] = `Bearer ${idToken}`;
     }
     if (this.userEmail && !options.skipUserEmail) {
       headers['X-User-Email'] = this.userEmail;
@@ -49,10 +60,7 @@ class DIYDashAPI {
         if (response.status === 401) {
           try {
             localStorage.removeItem(STORAGE_KEY);
-            const rawMsg = (data && data.message) ? data.message : 'User ID not found. Please create an account.';
-            const msg = rawMsg.includes('Account not found') || rawMsg.includes('You may have been removed')
-              ? 'User ID not found. Please create an account.'
-              : rawMsg;
+            const msg = (data && data.message) ? data.message : 'Please sign in again.';
             sessionStorage.setItem('loginMessage', msg);
           } catch (_) {}
           this.onUnauthorized?.();
@@ -79,14 +87,7 @@ class DIYDashAPI {
     }
   }
 
-  // Check that a user exists (used on login before calling onLogin to avoid flashing homepage). Throws on 401.
-  async validateUser(email) {
-    const owner = String(email || '').trim().toLowerCase();
-    if (!owner) throw new Error('Email is required.');
-    return this.request(`/projects?owner=${encodeURIComponent(owner)}`, { skipUserEmail: true });
-  }
-
-  // Get all projects (uses owner query param to avoid CORS preflight when X-User-Email not yet allowed)
+  // Get all projects
   async getProjects(status = null) {
     const params = new URLSearchParams();
     if (this.userEmail) params.set('owner', this.userEmail);
@@ -147,31 +148,7 @@ class DIYDashAPI {
     });
   }
 
-  // Create account (email + password). Account is unverified until user enters the 4-digit code.
-  async createAccount(email, password) {
-    return this.request('/auth/register', {
-      method: 'POST',
-      body: JSON.stringify({ email: email.trim(), password }),
-    });
-  }
-
-  // Send 4-digit verification code to user's email (only for existing unverified accounts)
-  async sendVerificationCode(email) {
-    return this.request('/auth/send-code', {
-      method: 'POST',
-      body: JSON.stringify({ email: email.trim() }),
-    });
-  }
-
-  // Verify 4-digit code and complete registration
-  async verifyCode(email, code) {
-    return this.request('/auth/verify-code', {
-      method: 'POST',
-      body: JSON.stringify({ email: email.trim(), code: String(code).trim() }),
-    });
-  }
-
-  // Delete current user account (requires X-User-Email from setUser). Clears session on success.
+  // Delete current user account (Cognito + backend data). Clears session on success.
   async deleteAccount() {
     const result = await this.request('/auth/account', { method: 'DELETE' });
     try {
@@ -338,6 +315,6 @@ class DIYDashAPI {
 }
 
 // Export singleton instance
-const apiClient = new DIYDashAPI();
+const apiClient = new Draft2DoneAPI();
 export default apiClient;
 

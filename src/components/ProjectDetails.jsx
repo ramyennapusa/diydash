@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import apiClient from '../services/api'
+import ResolvedImage from './ResolvedImage'
 import ProjectPictures from './ProjectPictures'
 import ProjectTasks from './ProjectTasks'
 import ProjectMaterials from './ProjectMaterials'
 import ProjectReferences from './ProjectReferences'
 import '../styles/ProjectDetails.css'
 
-const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop'
+const DEFAULT_PROJECT_IMAGE = '/draft2done-login-bg.png'
 
 const ProjectDetails = () => {
   const { id } = useParams()
@@ -213,8 +214,9 @@ const ProjectDetails = () => {
       setUpdatingTitle(true)
       setError(null)
       
-      const updatedProject = await apiClient.updateProject(id, { title: titleValue.trim() })
-      setProject(updatedProject)
+      await apiClient.updateProject(id, { title: titleValue.trim() })
+      // Refetch project so we get presigned URLs for image/pictures (update returns raw S3 keys)
+      await fetchProject(false)
       setEditingTitle(false)
     } catch (err) {
       console.error('Failed to update project title:', err)
@@ -261,8 +263,9 @@ const ProjectDetails = () => {
       setUpdatingDescription(true)
       setError(null)
       
-      const updatedProject = await apiClient.updateProject(id, { description: descriptionValue })
-      setProject(updatedProject)
+      await apiClient.updateProject(id, { description: descriptionValue })
+      // Refetch project so we get presigned URLs for image/pictures (update returns raw S3 keys)
+      await fetchProject(false)
       setEditingDescription(false)
     } catch (err) {
       console.error('Failed to update project description:', err)
@@ -355,7 +358,7 @@ const ProjectDetails = () => {
   const canManageCollaborators = project && (project.role === 'owner' || (project.role === 'collaborator' && project.collaboratorPermission === 'edit'))
   const currentUserEmail = (() => {
     try {
-      const u = JSON.parse(localStorage.getItem('diydash_user') || 'null')
+      const u = JSON.parse(localStorage.getItem('draft2done_user') || 'null')
       return (u?.email || '').trim().toLowerCase()
     } catch {
       return ''
@@ -478,16 +481,7 @@ const ProjectDetails = () => {
     }
   }
 
-  // Get image URL (with default fallback)
-  const getImageUrl = () => {
-    if (previewImage) {
-      return previewImage
-    }
-    if (project?.image && project.image.trim() !== '') {
-      return project.image
-    }
-    return DEFAULT_PROJECT_IMAGE
-  }
+  const hasProjectImage = project?.imageKey || (project?.image && String(project.image).trim() !== '')
 
 
   if (loading) {
@@ -582,14 +576,21 @@ const ProjectDetails = () => {
         {/* Project Image Section */}
         <div className="project-image-section">
           <div className="project-image-container">
-            <img 
-              src={getImageUrl()} 
-              alt={project.title}
-              className="project-image"
-              onError={(e) => {
-                e.target.src = DEFAULT_PROJECT_IMAGE
-              }}
-            />
+            {previewImage ? (
+              <img src={previewImage} alt={project.title} className="project-image" />
+            ) : hasProjectImage ? (
+              <ResolvedImage
+                s3Key={project.imageKey}
+                fallbackUrl={project.image}
+                alt={project.title}
+                className="project-image"
+                onError={(e) => {
+                  e.target.src = DEFAULT_PROJECT_IMAGE
+                }}
+              />
+            ) : (
+              <img src={DEFAULT_PROJECT_IMAGE} alt={project.title} className="project-image" />
+            )}
             <div className="project-image-overlay">
               <label htmlFor="project-image-upload" className="image-change-button">
                 {previewImage ? 'Change Image' : 'Change Image'}

@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react'
 import '../styles/ProjectPictures.css'
 import apiClient from '../services/api'
+import ResolvedImage from './ResolvedImage'
+import { getS3ObjectUrl, isS3MediaConfigured } from '../services/s3Media'
 
 const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
   const [selectedImage, setSelectedImage] = useState(null)
@@ -40,7 +42,7 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
   const handleSearchImage = async (e, imageUrl) => {
     e.stopPropagation()
     if (!imageUrl || (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://'))) {
-      alert('Image URL is not available for search')
+      alert('Reverse image search is not available for images stored in the app.')
       return
     }
 
@@ -61,37 +63,43 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
     }, 1000)
   }
 
-  const handleDownloadImage = async (e, imageUrl, caption) => {
+  const handleDownloadImage = async (e, imageUrlOrKey, caption) => {
     e.stopPropagation()
-    if (!imageUrl || (!imageUrl.startsWith('http://') && !imageUrl.startsWith('https://'))) {
-      alert('Image URL is not available for download')
+    if (!imageUrlOrKey) {
+      alert('Image is not available for download')
       return
     }
 
+    const isHttp = imageUrlOrKey.startsWith('http://') || imageUrlOrKey.startsWith('https://')
+
     try {
-      const response = await fetch(imageUrl)
-      if (!response.ok) {
-        throw new Error('Failed to fetch image')
+      let url
+      if (isHttp) {
+        const response = await fetch(imageUrlOrKey)
+        if (!response.ok) throw new Error('Failed to fetch image')
+        const blob = await response.blob()
+        url = window.URL.createObjectURL(blob)
+      } else if (isS3MediaConfigured) {
+        url = await getS3ObjectUrl(imageUrlOrKey)
+        if (!url) throw new Error('Failed to load image')
+      } else {
+        alert('Image is not available for download')
+        return
       }
-      
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
+
       const link = document.createElement('a')
       link.href = url
-      
-      // Use caption as filename if available, otherwise use timestamp
-      const filename = caption && caption.trim() 
+      const filename = caption && caption.trim()
         ? `${caption.trim().replace(/[^a-z0-9]/gi, '_').toLowerCase()}.jpg`
         : `image_${Date.now()}.jpg`
-      
       link.download = filename
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      window.URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Error downloading image:', error)
-      alert('Failed to download image. Please try again.')
+      if (!isHttp && url) window.URL.revokeObjectURL(url)
+    } catch (err) {
+      console.error('Download error:', err)
+      alert(err.message || 'Failed to download image')
     }
   }
 
@@ -546,28 +554,22 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
                   <span className="error-icon">🖼️</span>
                   <p>Image not available</p>
                 </div>
-              ) : !picture.url || (!picture.url.startsWith('http://') && !picture.url.startsWith('https://')) ? (
-                <div className="image-error">
-                  <span className="error-icon">🖼️</span>
-                  <p>Invalid image URL</p>
-                </div>
-              ) : (
-                <img
-                  src={picture.url}
+              ) : (picture.key || picture.url) ? (
+                <ResolvedImage
+                  s3Key={picture.key}
+                  fallbackUrl={picture.url}
                   alt={picture.caption || 'Project picture'}
                   className="picture-image"
                   onLoad={() => handleImageLoad(picture.id)}
                   onError={(e) => {
-                    console.error('Image load error:', {
-                      pictureId: picture.id,
-                      url: picture.url,
-                      urlType: picture.url?.startsWith('http') ? 'presigned' : 's3-key',
-                      error: e
-                    })
-                    handleImageError(picture.id, picture.url)
+                    handleImageError(picture.id, picture.url || picture.key)
                   }}
-                  onLoadStart={() => handleImageLoadStart(picture.id)}
                 />
+              ) : (
+                <div className="image-error">
+                  <span className="error-icon">🖼️</span>
+                  <p>Invalid image URL</p>
+                </div>
               )}
               
               <div className="picture-overlay">
@@ -707,7 +709,7 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
                     className="lightbox-menu-item"
                     onClick={(e) => {
                       e.stopPropagation()
-                      handleDownloadImage(e, selectedImage.url, selectedImage.caption)
+                      handleDownloadImage(e, selectedImage.key || selectedImage.url, selectedImage.caption)
                       setShowImageMenu(false)
                     }}
                   >
@@ -735,7 +737,7 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
             <button 
               className="lightbox-search-button"
               onClick={(e) => handleSearchImage(e, selectedImage.url)}
-              title="Search image origin (opens Google & Yandex)"
+              title={(selectedImage.key || selectedImage.url) && !selectedImage.url?.startsWith('http') ? 'Reverse image search not available for app images' : 'Search image origin (opens Google & Yandex)'}
               aria-label="Search image origin"
             >
               🔍
@@ -762,16 +764,30 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
             
             <div className="lightbox-image-wrapper">
               <div className="lightbox-image-container">
-                <img
-                  src={selectedImage.url && (selectedImage.url.startsWith('http://') || selectedImage.url.startsWith('https://')) ? selectedImage.url : ''}
-                  alt={selectedImage.caption}
-                  className="lightbox-image"
-                  style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s ease' }}
-                  onClick={handleImageClickZoom}
-                  onDoubleClick={handleImageDoubleClickZoom}
-                  onContextMenu={handleImageRightClickZoom}
-                  title="Click to zoom in, double-click to reset, right-click to zoom out"
-                />
+                {(selectedImage.key || selectedImage.url) && (selectedImage.url?.startsWith('http://') || selectedImage.url?.startsWith('https://')) ? (
+                  <img
+                    src={selectedImage.url}
+                    alt={selectedImage.caption}
+                    className="lightbox-image"
+                    style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s ease' }}
+                    onClick={handleImageClickZoom}
+                    onDoubleClick={handleImageDoubleClickZoom}
+                    onContextMenu={handleImageRightClickZoom}
+                    title="Click to zoom in, double-click to reset, right-click to zoom out"
+                  />
+                ) : (
+                  <ResolvedImage
+                    s3Key={selectedImage.key || selectedImage.url}
+                    fallbackUrl={null}
+                    alt={selectedImage.caption}
+                    className="lightbox-image"
+                    style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s ease' }}
+                    onClick={handleImageClickZoom}
+                    onDoubleClick={handleImageDoubleClickZoom}
+                    onContextMenu={handleImageRightClickZoom}
+                    title="Click to zoom in, double-click to reset, right-click to zoom out"
+                  />
+                )}
               </div>
             </div>
             

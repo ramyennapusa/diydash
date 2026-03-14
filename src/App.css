@@ -1,4 +1,4 @@
-/* DIYDash CSS Custom Properties for Theming */
+/* Draft2Done CSS Custom Properties for Theming */
 :root {
   /* Primary DIY Color Palette */
   --diy-primary: #d35400;        /* Orange - tools/construction */
@@ -71,7 +71,7 @@
   height: 100%;
   background-color: var(--diy-bg-secondary);
   color: var(--diy-text-primary);
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: 'Source Sans 3', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   line-height: 1.6;
   display: flex;
   flex-direction: column;

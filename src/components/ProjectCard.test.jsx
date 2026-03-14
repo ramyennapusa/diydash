@@ -71,7 +71,7 @@ describe('ProjectCard Component', () => {
     const image = screen.getByAltText('Test Project')
     fireEvent.error(image)
     
-    expect(image).toHaveAttribute('src', 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop')
+    expect(image).toHaveAttribute('src', '/draft2done-login-bg.png')
   })
 
   test('formats date correctly', () => {

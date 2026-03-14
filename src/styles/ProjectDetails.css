@@ -21,7 +21,7 @@
   width: 40px;
   height: 40px;
   border: 4px solid #f3f4f6;
-  border-top: 4px solid #f97316;
+  border-top: 4px solid #9B8C69;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 1rem;
@@ -122,7 +122,7 @@
 }
 
 .menu-icon {
-  color: #f97316;
+  color: #9B8C69;
   font-size: 1.25rem;
   line-height: 1;
   font-weight: 600;
@@ -278,7 +278,7 @@
 
 .back-button {
   margin-bottom: 2rem;
-  background: linear-gradient(135deg, #f97316, #ea580c);
+  background: linear-gradient(135deg, #9B8C69, #706050);
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -347,8 +347,9 @@
 
 .project-title {
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 700;
-  color: #1f2937;
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-weight: 600;
+  color: #2D323E;
   margin: 0;
   line-height: 1.2;
   flex: 1;
@@ -389,9 +390,10 @@
 .project-title-input {
   flex: 1;
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 700;
-  color: #1f2937;
-  border: 2px solid #f97316;
+  font-family: 'Playfair Display', Georgia, 'Times New Roman', serif;
+  font-weight: 600;
+  color: #2D323E;
+  border: 2px solid #9B8C69;
   border-radius: 0.5rem;
   padding: 0.5rem 1rem;
   background: white;
@@ -400,8 +402,8 @@
 
 .project-title-input:focus {
   outline: none;
-  border-color: #ea580c;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+  border-color: #9B8C69;
+  box-shadow: 0 0 0 3px rgba(155, 140, 105, 0.18);
 }
 
 .project-title-input:disabled {
@@ -704,14 +706,14 @@
 }
 
 .tab-button:hover {
-  background: rgba(249, 115, 22, 0.05);
-  color: #f97316;
+  background: rgba(155, 140, 105, 0.06);
+  color: #9B8C69;
 }
 
 .tab-button.active {
   background: white;
-  color: #f97316;
-  border-bottom-color: #f97316;
+  color: #9B8C69;
+  border-bottom-color: #9B8C69;
 }
 
 /* Tab Content */

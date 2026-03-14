@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import apiClient from '../services/api'
 
-const INVITE_TOKEN_KEY = 'diydash_invite_token'
+const INVITE_TOKEN_KEY = 'draft2done_invite_token'
 
 /**
  * Landing page for invite links: /invite?token=xxx

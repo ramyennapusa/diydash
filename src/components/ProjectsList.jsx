@@ -5,7 +5,7 @@ import CreateProject from './CreateProject'
 import apiClient from '../services/api'
 import './ProjectsList.css'
 
-const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop'
+const DEFAULT_PROJECT_IMAGE = '/draft2done-login-bg.png'
 
 function ProjectsList() {
   const navigate = useNavigate()
@@ -22,8 +22,8 @@ function ProjectsList() {
   const [isCreating, setIsCreating] = useState(false)
   const [showFilterDropdown, setShowFilterDropdown] = useState(false)
 
-  // Available status options
-  const statusOptions = ['Planning', 'In Progress', 'Completed', 'Deleted']
+  // Available status options shown in the homepage filter dropdown
+  const statusOptions = ['Planning', 'In Progress', 'Completed']
 
   // Filter and sort projects
   const filteredAndSortedProjects = useMemo(() => {

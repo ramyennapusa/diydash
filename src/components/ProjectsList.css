@@ -1,11 +1,12 @@
 .projects-list {
   min-height: 100vh;
-  background: #f5f0e8;
+  background: #000000;
   display: flex;
   flex-direction: column;
   gap: 2rem;
   padding: 2rem;
   width: 100%;
+  font-family: 'Source Sans 3', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 /* Stats Container */
@@ -39,7 +40,7 @@
 }
 
 .stat-card.clickable:hover {
-  border-color: #f97316;
+  border-color: #9B8C69;
   background: #fff7ed;
   transform: translateY(-2px);
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
@@ -50,22 +51,22 @@
 }
 
 .stat-card.clickable:focus {
-  outline: 2px solid #f97316;
+  outline: 2px solid #9B8C69;
   outline-offset: 2px;
 }
 
 .stat-card.clickable.active {
   background: #fff7ed;
-  border-color: #f97316;
+  border-color: #9B8C69;
   border-width: 2px;
 }
 
 .stat-card.clickable.active .stat-number {
-  color: #f97316;
+  color: #9B8C69;
 }
 
 .stat-card.clickable.active .stat-label {
-  color: #f97316;
+  color: #9B8C69;
   font-weight: 500;
 }
 
@@ -723,13 +724,13 @@
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
   .projects-list {
-    background: linear-gradient(135deg, #1a202c 0%, #2d3748 100%);
+    background: linear-gradient(135deg, #000000 0%, #2D323E 100%);
   }
 
   .stats-container,
   .projects-container {
-    background: #2d3748;
-    border-color: #4a5568;
+    background: #2D323E;
+    border-color: #706050;
   }
   
   .control-label {
@@ -737,8 +738,8 @@
   }
 
   .filter-dropdown-button {
-    background-color: #2d3748;
-    border-color: #4a5568;
+    background-color: #2D323E;
+    border-color: #706050;
     color: #e2e8f0;
   }
 
@@ -752,8 +753,8 @@
   }
 
   .filter-dropdown-menu {
-    background: #2d3748;
-    border-color: #4a5568;
+    background: #2D323E;
+    border-color: #706050;
   }
 
   .status-checkbox-label {
@@ -769,13 +770,13 @@
   }
 
   .search-input {
-    background-color: #2d3748;
-    border-color: #4a5568;
+    background-color: #2D323E;
+    border-color: #706050;
     color: #e2e8f0;
   }
 
   .search-input:focus {
-    background-color: #2d3748;
+    background-color: #2D323E;
     border-color: #6b7280;
     color: #e2e8f0;
   }
@@ -798,21 +799,21 @@
   }
 
   .modern-select {
-    background-color: #2d3748;
-    border-color: #4a5568;
+    background-color: #2D323E;
+    border-color: #706050;
     color: #e2e8f0 !important;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e2e8f0' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
   }
 
   .modern-select:focus {
-    background-color: #2d3748;
+    background-color: #2D323E;
     border-color: #6b7280;
     color: #e2e8f0 !important;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23e2e8f0' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
   }
 
   .modern-select option {
-    background: #2d3748;
+    background: #2D323E;
     color: #e2e8f0;
   }
   

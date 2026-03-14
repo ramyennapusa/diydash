@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import apiClient from '../services/api'
+import ResolvedImage from './ResolvedImage'
 import './ProjectCard.css'
 
-const DEFAULT_PROJECT_IMAGE = 'https://images.unsplash.com/photo-1568605114967-8130f3a36994?w=400&h=300&fit=crop'
+const DEFAULT_PROJECT_IMAGE = '/draft2done-login-bg.png'
 
 function ProjectCard({ project, onUpdate }) {
   const navigate = useNavigate()
@@ -113,21 +114,24 @@ function ProjectCard({ project, onUpdate }) {
     }
   }
 
-  // Use default image if no image is provided or if image is empty string
-  const imageUrl = project.image && project.image.trim() !== '' 
-    ? project.image 
-    : DEFAULT_PROJECT_IMAGE
+  const hasImage = (project.imageKey || project.image) && String(project.image || project.imageKey || '').trim() !== ''
+  const imageUrl = hasImage ? (project.image || project.imageKey || '') : DEFAULT_PROJECT_IMAGE
 
   return (
     <div className="project-card" onClick={handleCardClick}>
       <div className="project-card-image">
-        <img 
-          src={imageUrl} 
-          alt={project.title}
-          onError={(e) => {
-            e.target.src = DEFAULT_PROJECT_IMAGE
-          }}
-        />
+        {hasImage ? (
+          <ResolvedImage
+            s3Key={project.imageKey}
+            fallbackUrl={project.image}
+            alt={project.title}
+            onError={(e) => {
+              e.target.src = DEFAULT_PROJECT_IMAGE
+            }}
+          />
+        ) : (
+          <img src={DEFAULT_PROJECT_IMAGE} alt={project.title} />
+        )}
         <div className="project-card-status-row">
           <div 
             className={`project-status ${getStatusColor(project.status)}`}

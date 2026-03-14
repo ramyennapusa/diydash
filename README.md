@@ -22,7 +22,7 @@ Draft2Done is a modern React dashboard application for managing DIY (Do It Yours
 1. Clone or download the Draft2Done project
 2. Navigate to the project directory:
    ```bash
-   cd diydash
+   cd draft2done-webapp
    ```
 3. Install dependencies:
    ```bash
@@ -60,7 +60,7 @@ npm run preview
 ## Project Structure
 
 ```
-diydash/
+draft2done-webapp/
 ├── public/              # Static assets
 ├── src/                 # Source code
 │   ├── assets/          # Static assets (images, icons)

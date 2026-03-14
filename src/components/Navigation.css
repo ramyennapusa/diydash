@@ -3,9 +3,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 1rem 2rem;
-  background-color: #f5f0e8;
-  color: #000000;
-  border-bottom: 1px solid #e8e2d8;
+  background-color: #000000;
+  color: #F2EBD0;
+  border-bottom: 1px solid #2D323E;
 }
 
 .nav-content {
@@ -23,7 +23,7 @@
   margin: 0;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #000000;
+  color: #F2EBD0;
 }
 
 .nav-links {
