@@ -116,7 +116,7 @@
   width: 24px;
   height: 24px;
   border: 2px solid #e5e7eb;
-  border-top: 2px solid #f97316;
+  border-top: 2px solid #b18458;
   border-radius: 50%;
   animation: spin 1s linear infinite;
 }
@@ -245,7 +245,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #f97316;
+  color: #b18458;
 }
 
 .picture-caption {
@@ -587,7 +587,7 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #f97316;
+  color: #b18458;
 }
 
 .lightbox-caption {
@@ -812,7 +812,7 @@
 
 /* Upload Form Styles */
 .upload-button {
-  background: #f97316;
+  background: #b18458;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -825,7 +825,7 @@
 }
 
 .upload-button:hover {
-  background: #ea580c;
+  background: #93693f;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
 }
@@ -963,7 +963,7 @@
 .upload-form .form-group input:focus,
 .upload-form .form-group select:focus {
   outline: none;
-  border-color: #f97316;
+  border-color: #b18458;
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
 }
 
@@ -1001,12 +1001,12 @@
 }
 
 .upload-form .submit-button {
-  background: #f97316;
+  background: #b18458;
   color: white;
 }
 
 .upload-form .submit-button:hover:not(:disabled) {
-  background: #ea580c;
+  background: #93693f;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
 }
@@ -1098,7 +1098,7 @@
 
 .preview-caption-input:focus {
   outline: none;
-  border-color: #f97316;
+  border-color: #b18458;
   box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.1);
 }
 
@@ -1151,7 +1151,7 @@
 
   .upload-form .form-group input:focus,
   .upload-form .form-group select:focus {
-    border-color: #f97316;
+    border-color: #b18458;
     box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
   }
 
@@ -1188,7 +1188,7 @@
   }
 
   .preview-caption-input:focus {
-    border-color: #f97316;
+    border-color: #b18458;
     box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
   }
 }

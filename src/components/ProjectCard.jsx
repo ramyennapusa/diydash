@@ -138,8 +138,8 @@ function ProjectCard({ project, onUpdate }) {
             style={
               project.status === 'In Progress' && taskProgress > 0
                 ? {
-                    background: `linear-gradient(90deg, #10b981 0%, #10b981 ${taskProgress}%, #fef3c7 ${taskProgress}%, #fef3c7 100%)`,
-                    color: taskProgress > 50 ? '#ffffff' : '#92400e',
+                    background: `linear-gradient(90deg, #7ea68f 0%, #7ea68f ${taskProgress}%, #e8dccb ${taskProgress}%, #e8dccb 100%)`,
+                    color: taskProgress > 50 ? '#ffffff' : '#7b6145',
                     fontWeight: taskProgress > 50 ? '600' : '500'
                   }
                 : {}

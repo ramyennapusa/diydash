@@ -469,11 +469,11 @@ const ProjectDetails = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case 'Completed':
-        return '#10b981'
+        return '#5f8a74'
       case 'In Progress':
-        return '#f59e0b'
+        return '#b18458'
       case 'Planning':
-        return '#3b82f6'
+        return '#5f7d9f'
       case 'Deleted':
         return '#6b7280'
       default:
@@ -689,7 +689,6 @@ const ProjectDetails = () => {
               <option value="Planning">Planning</option>
               <option value="In Progress">In Progress</option>
               <option value="Completed">Completed</option>
-              <option value="Deleted">Deleted</option>
             </select>
             {updatingStatus && (
               <span className="status-updating-indicator">Updating...</span>

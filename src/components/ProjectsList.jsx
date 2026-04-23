@@ -6,6 +6,7 @@ import apiClient from '../services/api'
 import './ProjectsList.css'
 
 const DEFAULT_PROJECT_IMAGE = '/draft2done-login-bg.png'
+const PROJECTS_CACHE_KEY = 'draft2done_projects_cache_v1'
 
 function ProjectsList() {
   const navigate = useNavigate()
@@ -156,25 +157,60 @@ function ProjectsList() {
   }
 
   // Fetch projects from API
-  const fetchProjects = async () => {
+  const fetchProjects = async ({ showLoading = true } = {}) => {
     try {
-      setIsLoading(true)
+      if (showLoading) {
+        setIsLoading(true)
+      }
       setError(null)
       // Load all projects, filtering will be done client-side
       const response = await apiClient.getProjects(null)
-      setProjects(response.projects || [])
-      setPendingCollaborationRequests(response.pendingCollaborationRequests || [])
+      const nextProjects = response.projects || []
+      const nextPending = response.pendingCollaborationRequests || []
+      setProjects(nextProjects)
+      setPendingCollaborationRequests(nextPending)
+      try {
+        sessionStorage.setItem(
+          PROJECTS_CACHE_KEY,
+          JSON.stringify({
+            projects: nextProjects,
+            pendingCollaborationRequests: nextPending,
+            cachedAt: Date.now()
+          })
+        )
+      } catch (_) {
+        // Ignore cache write errors (private mode/quota/etc.)
+      }
     } catch (err) {
       console.error('Failed to load projects:', err)
       setError(err.message || 'Failed to load projects')
     } finally {
-      setIsLoading(false)
+      if (showLoading) {
+        setIsLoading(false)
+      }
     }
   }
 
   // Load projects from API - load all projects, filter client-side
   useEffect(() => {
-    fetchProjects()
+    let hasCache = false
+    try {
+      const cachedRaw = sessionStorage.getItem(PROJECTS_CACHE_KEY)
+      if (cachedRaw) {
+        const cached = JSON.parse(cachedRaw)
+        if (Array.isArray(cached.projects)) {
+          setProjects(cached.projects)
+          setPendingCollaborationRequests(cached.pendingCollaborationRequests || [])
+          setIsLoading(false)
+          hasCache = true
+        }
+      }
+    } catch (_) {
+      // Ignore cache read errors and proceed with normal fetch
+    }
+
+    // Always refresh in background; only show spinner if no cache was available.
+    fetchProjects({ showLoading: !hasCache })
   }, [])
 
   const handleAcceptCollaboration = async (projectId) => {

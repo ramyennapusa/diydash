@@ -63,9 +63,9 @@ const ProjectVideos = ({ videos = [], projectId, onUpdate }) => {
       case 'tutorial':
         return '#3b82f6'
       case 'progress':
-        return '#10b981'
+        return '#5f8a74'
       case 'reference':
-        return '#f59e0b'
+        return '#b18458'
       default:
         return '#6b7280'
     }

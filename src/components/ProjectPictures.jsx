@@ -46,21 +46,8 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
       return
     }
 
-    // Try Yandex first as it often works better with S3 presigned URLs
-    const yandexUrl = `https://yandex.com/images/search?rpt=imageview&url=${encodeURIComponent(imageUrl)}`
-    window.open(yandexUrl, '_blank', 'noopener,noreferrer')
-    
-    // Also try Google Images (may not work with CORS-restricted URLs)
-    setTimeout(() => {
-      const googleUrl = `https://www.google.com/searchbyimage?image_url=${encodeURIComponent(imageUrl)}&safe=off`
-      window.open(googleUrl, '_blank', 'noopener,noreferrer')
-    }, 500)
-    
-    // Try TinEye as well
-    setTimeout(() => {
-      const tineyeUrl = `https://tineye.com/search?url=${encodeURIComponent(imageUrl)}`
-      window.open(tineyeUrl, '_blank', 'noopener,noreferrer')
-    }, 1000)
+    const googleUrl = `https://www.google.com/searchbyimage?image_url=${encodeURIComponent(imageUrl)}&safe=off`
+    window.open(googleUrl, '_blank', 'noopener,noreferrer')
   }
 
   const handleDownloadImage = async (e, imageUrlOrKey, caption) => {
@@ -737,7 +724,7 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
             <button 
               className="lightbox-search-button"
               onClick={(e) => handleSearchImage(e, selectedImage.url)}
-              title={(selectedImage.key || selectedImage.url) && !selectedImage.url?.startsWith('http') ? 'Reverse image search not available for app images' : 'Search image origin (opens Google & Yandex)'}
+              title={(selectedImage.key || selectedImage.url) && !selectedImage.url?.startsWith('http') ? 'Reverse image search not available for app images' : 'Search image origin (opens Google Images)'}
               aria-label="Search image origin"
             >
               🔍

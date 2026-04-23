@@ -1,0 +1,131 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#EDE8E0"/>
+      <stop offset="100%" style="stop-color:#D8D0C4"/>
+    </linearGradient>
+
+    <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" style="stop-color:#EDE8E0;stop-opacity:0"/>
+      <stop offset="100%" style="stop-color:#C4B9A8;stop-opacity:0.3"/>
+    </radialGradient>
+
+    <filter id="checkShadow">
+      <feDropShadow dx="0" dy="8" stdDeviation="16" flood-color="#3D1800" flood-opacity="0.25"/>
+    </filter>
+
+    <filter id="inkFilter">
+      <feTurbulence type="fractalNoise" baseFrequency="0.02 0.15" numOctaves="3" seed="42" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="3" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="230" ry="230" fill="url(#bgGrad)"/>
+  <rect width="1024" height="1024" rx="230" ry="230" fill="url(#vignette)"/>
+
+  <!-- ══ HANDWRITTEN D ══
+       Drawn as a single continuous stroke like a pen writing the letter D:
+       - starts at top with a slight entry flick
+       - pulls down the vertical stem
+       - loops back up and sweeps a wide round bowl
+       - returns to close near the top
+       The stroke varies in width using multiple overlapping paths to simulate
+       natural pen pressure — thick on downstrokes, thin on upstrokes -->
+
+  <g filter="url(#inkFilter)">
+
+    <!-- STEM — thick downstroke (main vertical, pen pressure heavy going down) -->
+    <path d="
+      M 305 198
+      C 308 192, 316 188, 326 190
+      C 338 192, 346 204, 347 218
+      L 352 740
+      C 352 756, 344 770, 332 773
+      C 320 776, 308 768, 304 754
+      L 298 222
+      C 297 210, 300 200, 305 198
+      Z
+    " fill="#1C1410"/>
+
+    <!-- Entry serif flick at top — the pen landing on the page -->
+    <path d="
+      M 290 210
+      C 296 196, 310 188, 328 190
+      C 318 188, 306 194, 300 206
+      Z
+    " fill="#1C1410"/>
+
+    <!-- BOWL — the sweeping curve of the D
+         Handwritten D bowls tend to be wide, slightly drooping, 
+         with the connection points slightly offset (not perfectly symmetric) -->
+
+    <!-- Upper connection and top arc — thin upstroke going right -->
+    <path d="
+      M 340 208
+      C 380 196, 460 192, 540 212
+      C 610 230, 672 268, 714 322
+      C 750 368, 768 420, 768 476
+      C 768 532, 750 586, 716 632
+      C 678 682, 618 718, 546 736
+      C 480 752, 404 750, 352 740
+    " fill="none" stroke="#1C1410" stroke-width="44" stroke-linecap="round"
+      stroke-linejoin="round"/>
+
+    <!-- Same path slightly thinner on top half to simulate pen pressure variation -->
+    <path d="
+      M 340 208
+      C 380 196, 460 192, 540 212
+      C 610 230, 672 268, 714 322
+    " fill="none" stroke="#1C1410" stroke-width="28" stroke-linecap="round"/>
+
+    <!-- Slightly thicker on the bottom swoop (downstroke) -->
+    <path d="
+      M 714 322
+      C 750 368, 768 420, 768 476
+      C 768 532, 750 586, 716 632
+      C 678 682, 618 718, 546 736
+      C 480 752, 404 750, 352 740
+    " fill="none" stroke="#1C1410" stroke-width="52" stroke-linecap="round"/>
+
+    <!-- Inner white to create the hollow of the D -->
+    <path d="
+      M 352 252
+      C 390 244, 454 242, 516 258
+      C 574 272, 624 304, 658 348
+      C 688 386, 702 430, 702 476
+      C 702 522, 688 566, 658 604
+      C 624 648, 572 678, 514 692
+      C 460 706, 398 704, 360 696
+      L 356 270
+      Z
+    " fill="url(#bgGrad)"/>
+
+  </g>
+
+  <!-- ── CHECKMARK BADGE ── -->
+  <g filter="url(#checkShadow)">
+    <circle cx="686" cy="656" r="118" fill="#1C1410"/>
+    <circle cx="686" cy="656" r="102" fill="#8B6343"/>
+
+    <!-- Checkmark — rounded, friendly -->
+    <polyline
+      points="634,656 670,694 742,606"
+      stroke="#F0EAE0"
+      stroke-width="26"
+      fill="none"
+      stroke-linecap="round"
+      stroke-linejoin="round"/>
+  </g>
+
+  <!-- ── D2D MONOGRAM ── -->
+  <line x1="330" y1="848" x2="660" y2="848" stroke="#3D2F1F" stroke-width="1.5" opacity="0.25"/>
+  <text x="512" y="890"
+        font-family="Georgia, 'Times New Roman', serif"
+        font-size="38"
+        letter-spacing="14"
+        fill="#3D2F1F"
+        opacity="0.48"
+        text-anchor="middle">D2D</text>
+
+</svg>

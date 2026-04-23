@@ -15,8 +15,13 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
   const [hasShownCompletionPrompt, setHasShownCompletionPrompt] = useState(false)
   const [showUncompleteModal, setShowUncompleteModal] = useState(false)
   const [hasShownUncompletePrompt, setHasShownUncompletePrompt] = useState(false)
+  const [showInProgressModal, setShowInProgressModal] = useState(false)
+  const [hasShownInProgressPrompt, setHasShownInProgressPrompt] = useState(false)
   const [assignDropdownTaskId, setAssignDropdownTaskId] = useState(null)
   const [assigningTaskId, setAssigningTaskId] = useState(null)
+  const [editingTaskId, setEditingTaskId] = useState(null)
+  const [editTaskText, setEditTaskText] = useState('')
+  const [savingEditTaskId, setSavingEditTaskId] = useState(null)
   const textareaRef = useRef(null)
 
   const taskToPayload = (task) => ({
@@ -72,6 +77,7 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
     if (currentStatus === 'Completed') {
       setHasShownCompletionPrompt(true) // Don't show prompt if already completed
       setHasShownUncompletePrompt(false) // Reset uncomplete prompt when status changes to Completed
+      setHasShownInProgressPrompt(true) // Do not ask to move to In Progress when already completed
     } else {
       // Reset prompt flag when project is not completed (allows showing again if tasks are uncompleted then re-completed)
       const allCompleted = tasks.length > 0 && tasks.every(task => task.completed)
@@ -80,6 +86,12 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
       }
       // Reset uncomplete prompt when status is not Completed
       setHasShownUncompletePrompt(false)
+      // If project leaves "In Progress", allow asking again when the next task is checked
+      if (currentStatus !== 'In Progress') {
+        setHasShownInProgressPrompt(false)
+      } else {
+        setHasShownInProgressPrompt(true)
+      }
     }
   }, [currentStatus, tasks])
 
@@ -174,6 +186,19 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
             setHasShownCompletionPrompt(true)
           }, 300)
         }
+
+        // When user checks a task, offer to move project to "In Progress"
+        if (
+          newCompletedState &&
+          currentStatus !== 'In Progress' &&
+          currentStatus !== 'Completed' &&
+          !hasShownInProgressPrompt
+        ) {
+          setTimeout(() => {
+            setShowInProgressModal(true)
+            setHasShownInProgressPrompt(true)
+          }, 300)
+        }
         
         // Show uncomplete prompt if a task is unchecked and project status is "Completed"
         if (!newCompletedState && currentStatus === 'Completed' && !hasShownUncompletePrompt) {
@@ -231,6 +256,22 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
 
   const handleDismissUncompleteModal = () => {
     setShowUncompleteModal(false)
+  }
+
+  const handleMarkProjectInProgressFromCheck = async () => {
+    if (onStatusUpdate) {
+      try {
+        await onStatusUpdate('In Progress')
+        setShowInProgressModal(false)
+      } catch (err) {
+        console.error('Failed to mark project as in progress:', err)
+        alert(err.message || 'Failed to mark project as in progress')
+      }
+    }
+  }
+
+  const handleDismissInProgressModal = () => {
+    setShowInProgressModal(false)
   }
 
   const handleDeleteTask = async (taskId) => {
@@ -383,6 +424,44 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
     }
   }
 
+  const handleStartEditTask = (task) => {
+    setEditingTaskId(task.id)
+    setEditTaskText(task.title || '')
+  }
+
+  const handleCancelEditTask = () => {
+    setEditingTaskId(null)
+    setEditTaskText('')
+  }
+
+  const handleSaveEditTask = async (taskId) => {
+    if (!projectId || savingEditTaskId) return
+    const nextTitle = editTaskText.trim()
+    if (!nextTitle) {
+      alert('Task title cannot be empty.')
+      return
+    }
+
+    const previousTasks = tasks
+    const updatedTasks = tasks.map(task =>
+      task.id === taskId ? { ...task, title: nextTitle } : task
+    )
+    setTasks(updatedTasks)
+    setEditingTaskId(null)
+    setEditTaskText('')
+
+    try {
+      setSavingEditTaskId(taskId)
+      const updatedProjectTasks = updatedTasks.map(taskToPayload)
+      await apiClient.updateProject(projectId, { tasks: updatedProjectTasks })
+    } catch (err) {
+      setTasks(previousTasks)
+      alert(err.message || 'Failed to update task title.')
+    } finally {
+      setSavingEditTaskId(null)
+    }
+  }
+
   if (loading) {
     return (
       <div className="tasks-empty">
@@ -492,6 +571,13 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
                   isCompleted={taskStates[task.id] || false}
                   onToggle={() => handleTaskToggle(task.id)}
                   onDelete={() => handleDeleteTask(task.id)}
+                  onEditStart={() => handleStartEditTask(task)}
+                  onEditSave={() => handleSaveEditTask(task.id)}
+                  onEditCancel={handleCancelEditTask}
+                  isEditing={editingTaskId === task.id}
+                  editTaskText={editTaskText}
+                  onEditTaskTextChange={setEditTaskText}
+                  isSavingEdit={savingEditTaskId === task.id}
                   isShared={isShared}
                   collaborators={collaborators}
                   onAssign={handleAssignTask}
@@ -583,12 +669,62 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
           </div>
         </div>
       )}
+
+      {showInProgressModal && (
+        <div className="completion-modal-overlay" onClick={handleDismissInProgressModal}>
+          <div className="completion-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="completion-modal-content">
+              <div className="completion-icon">🚀</div>
+              <h2 className="completion-title">Task Started</h2>
+              <p className="completion-message">
+                You checked a task for this project.
+              </p>
+              <p className="completion-question">
+                Would you like to change the project status to "In Progress"?
+              </p>
+              <div className="completion-modal-actions">
+                <button
+                  className="completion-button completion-button-primary"
+                  onClick={handleMarkProjectInProgressFromCheck}
+                >
+                  Yes, Mark as In Progress
+                </button>
+                <button
+                  className="completion-button completion-button-secondary"
+                  onClick={handleDismissInProgressModal}
+                >
+                  Not Now
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 // Separate TaskItem component for better organization
-const TaskItem = ({ task, isCompleted, onToggle, onDelete, isShared, collaborators = [], onAssign, assignDropdownOpen, onAssignDropdownToggle, onAssignDropdownClose, isAssigning }) => {
+const TaskItem = ({
+  task,
+  isCompleted,
+  onToggle,
+  onDelete,
+  onEditStart,
+  onEditSave,
+  onEditCancel,
+  isEditing,
+  editTaskText,
+  onEditTaskTextChange,
+  isSavingEdit,
+  isShared,
+  collaborators = [],
+  onAssign,
+  assignDropdownOpen,
+  onAssignDropdownToggle,
+  onAssignDropdownClose,
+  isAssigning
+}) => {
   const assignWrapperRef = useRef(null)
   const assigneeLabel = task.assignee && collaborators.find(c => (c.email || '').toLowerCase() === (task.assignee || '').toLowerCase())
   const assigneeEmail = (task.assignee || '').trim()
@@ -622,7 +758,29 @@ const TaskItem = ({ task, isCompleted, onToggle, onDelete, isShared, collaborato
       
       <div className="task-content">
         <div className="task-header">
-          <h5 className="task-title">{task.title}</h5>
+          {isEditing ? (
+            <input
+              type="text"
+              className="task-title-edit-input"
+              value={editTaskText}
+              onChange={(e) => onEditTaskTextChange(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  onEditSave()
+                }
+                if (e.key === 'Escape') {
+                  e.preventDefault()
+                  onEditCancel()
+                }
+              }}
+              autoFocus
+              disabled={isSavingEdit}
+              aria-label="Edit task title"
+            />
+          ) : (
+            <h5 className="task-title">{task.title}</h5>
+          )}
           {task.estimatedTime && (
             <div className="task-badges">
               <span className="time-badge">
@@ -635,7 +793,7 @@ const TaskItem = ({ task, isCompleted, onToggle, onDelete, isShared, collaborato
         <p className="task-description">{task.description}</p>
       </div>
 
-      {isShared && (
+      {isShared && !isEditing && (
         <div className="task-assign-wrapper" ref={assignWrapperRef}>
           {assignDropdownOpen && (
             <div className="task-assign-dropdown" role="listbox">
@@ -672,6 +830,41 @@ const TaskItem = ({ task, isCompleted, onToggle, onDelete, isShared, collaborato
             {hasAssignee ? assigneeInitial : '👤'}
           </button>
         </div>
+      )}
+
+      {isEditing ? (
+        <div className="task-edit-actions">
+          <button
+            type="button"
+            className="task-edit-action-button task-edit-save-button"
+            onClick={onEditSave}
+            disabled={isSavingEdit}
+            title="Save task"
+            aria-label="Save task"
+          >
+            ✓
+          </button>
+          <button
+            type="button"
+            className="task-edit-action-button task-edit-cancel-button"
+            onClick={onEditCancel}
+            disabled={isSavingEdit}
+            title="Cancel edit"
+            aria-label="Cancel edit"
+          >
+            ✕
+          </button>
+        </div>
+      ) : (
+        <button
+          type="button"
+          className="task-edit-button"
+          onClick={onEditStart}
+          title="Edit task"
+          aria-label="Edit task"
+        >
+          ✏️
+        </button>
       )}
       
       <button

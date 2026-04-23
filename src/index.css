@@ -55,19 +55,19 @@ p {
 
 /* Link Styles */
 a {
-  color: #d35400;
+  color: #b18458;
   text-decoration: none;
   font-weight: 500;
   transition: color 0.2s ease;
 }
 
 a:hover {
-  color: #a04000;
+  color: #93693f;
   text-decoration: underline;
 }
 
 a:focus {
-  outline: 2px solid #d35400;
+  outline: 2px solid #b18458;
   outline-offset: 2px;
 }
 
@@ -100,7 +100,7 @@ input, textarea, select {
 
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: #d35400;
+  border-color: #b18458;
   box-shadow: 0 0 0 2px rgba(211, 84, 0, 0.2);
 }
 
@@ -112,16 +112,16 @@ button {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s ease;
-  background-color: #d35400;
+  background-color: #b18458;
   color: white;
 }
 
 button:hover {
-  background-color: #a04000;
+  background-color: #93693f;
 }
 
 button:focus {
-  outline: 2px solid #d35400;
+  outline: 2px solid #b18458;
   outline-offset: 2px;
 }
 
@@ -195,7 +195,7 @@ pre code {
 
 /* Focus styles for keyboard navigation */
 :focus-visible {
-  outline: 2px solid #d35400;
+  outline: 2px solid #b18458;
   outline-offset: 2px;
 }
 

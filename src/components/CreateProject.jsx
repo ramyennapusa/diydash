@@ -232,7 +232,6 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
               <option value="Planning">Planning</option>
               <option value="In Progress">In Progress</option>
               <option value="Completed">Completed</option>
-              <option value="Deleted">Deleted</option>
             </select>
           </div>
 

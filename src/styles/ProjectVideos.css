@@ -79,12 +79,12 @@
 
 .type-select:focus {
   outline: none;
-  border-color: #f97316;
+  border-color: #b18458;
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
 }
 
 .type-select:hover {
-  border-color: #f97316;
+  border-color: #b18458;
 }
 
 /* Videos List */
@@ -515,7 +515,7 @@
   }
 
   .type-select:focus {
-    border-color: #f97316;
+    border-color: #b18458;
     box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
   }
 
@@ -565,7 +565,7 @@
 
 /* Upload Form Styles */
 .upload-button {
-  background: #f97316;
+  background: #b18458;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -578,7 +578,7 @@
 }
 
 .upload-button:hover {
-  background: #ea580c;
+  background: #93693f;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
 }
@@ -667,13 +667,13 @@
 }
 
 .mode-button:hover {
-  border-color: #f97316;
-  background: #fff7ed;
+  border-color: #b18458;
+  background: #ede4d8;
 }
 
 .mode-button.active {
-  border-color: #f97316;
-  background: #f97316;
+  border-color: #b18458;
+  background: #b18458;
   color: white;
 }
 
@@ -748,7 +748,7 @@
 .upload-form .form-group textarea:focus,
 .upload-form .form-group select:focus {
   outline: none;
-  border-color: #f97316;
+  border-color: #b18458;
   box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
 }
 
@@ -791,12 +791,12 @@
 }
 
 .upload-form .submit-button {
-  background: #f97316;
+  background: #b18458;
   color: white;
 }
 
 .upload-form .submit-button:hover:not(:disabled) {
-  background: #ea580c;
+  background: #93693f;
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
 }
@@ -845,12 +845,12 @@
   }
 
   .mode-button:hover {
-    border-color: #f97316;
+    border-color: #b18458;
     background: #6b7280;
   }
 
   .mode-button.active {
-    background: #f97316;
+    background: #b18458;
     color: white;
   }
 
@@ -869,7 +869,7 @@
   .upload-form .form-group input:focus,
   .upload-form .form-group textarea:focus,
   .upload-form .form-group select:focus {
-    border-color: #f97316;
+    border-color: #b18458;
     box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
   }
 

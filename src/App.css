@@ -1,9 +1,9 @@
 /* Draft2Done CSS Custom Properties for Theming */
 :root {
   /* Primary DIY Color Palette */
-  --diy-primary: #d35400;        /* Orange - tools/construction */
-  --diy-primary-light: #e67e22;  /* Lighter orange */
-  --diy-primary-dark: #a04000;   /* Darker orange */
+  --diy-primary: #b18458;        /* Orange - tools/construction */
+  --diy-primary-light: #c19265;  /* Lighter orange */
+  --diy-primary-dark: #93693f;   /* Darker orange */
   
   /* Secondary Colors */
   --diy-secondary: #2c3e50;      /* Dark blue-gray */

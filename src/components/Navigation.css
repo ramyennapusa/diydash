@@ -45,7 +45,7 @@
 }
 
 .nav-link.active {
-  background-color: #e67e22;
+  background-color: #c19265;
   color: white;
 }
 
@@ -96,8 +96,8 @@
 }
 
 .nav-logout:hover {
-  color: var(--diy-primary, #d35400);
-  border-color: var(--diy-primary, #d35400);
+  color: var(--diy-primary, #b18458);
+  border-color: var(--diy-primary, #b18458);
   background-color: rgba(211, 84, 0, 0.06);
 }
 

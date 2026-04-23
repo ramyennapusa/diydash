@@ -21,11 +21,11 @@
 }
 
 .user-menu-trigger:hover {
-  background: var(--diy-primary, #d35400);
+  background: var(--diy-primary, #b18458);
 }
 
 .user-menu-trigger:focus-visible {
-  outline: 2px solid var(--diy-primary, #d35400);
+  outline: 2px solid var(--diy-primary, #b18458);
   outline-offset: 2px;
 }
 
@@ -106,7 +106,7 @@
 }
 
 .user-menu-item--logout {
-  color: var(--diy-primary-dark, #a04000);
+  color: var(--diy-primary-dark, #93693f);
   font-weight: 500;
 }
 
