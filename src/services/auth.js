@@ -3,6 +3,9 @@ import {
   signIn as amplifySignIn,
   signUp as amplifySignUp,
   confirmSignUp as amplifyConfirmSignUp,
+  resetPassword as amplifyResetPassword,
+  confirmResetPassword as amplifyConfirmResetPassword,
+  updatePassword as amplifyUpdatePassword,
   signOut as amplifySignOut,
   getCurrentUser,
   fetchAuthSession,
@@ -44,6 +47,40 @@ export const auth = {
     if (!username || !password) throw new Error('Email and password are required.');
     const { isSignUpComplete, nextStep } = await amplifySignIn({ username, password });
     return { isSignUpComplete, nextStep, email: username };
+  },
+
+  async requestPasswordReset(email) {
+    if (!isCognitoConfigured) throw new Error('Cognito is not configured.');
+    const username = (email || '').trim().toLowerCase();
+    if (!username) throw new Error('Email is required.');
+    await amplifyResetPassword({ username });
+    return { email: username };
+  },
+
+  async confirmPasswordReset(email, code, newPassword) {
+    if (!isCognitoConfigured) throw new Error('Cognito is not configured.');
+    const username = (email || '').trim().toLowerCase();
+    const confirmationCode = String(code || '').trim();
+    const nextPassword = String(newPassword || '').trim();
+    if (!username || !confirmationCode || !nextPassword) {
+      throw new Error('Email, code, and new password are required.');
+    }
+    await amplifyConfirmResetPassword({
+      username,
+      confirmationCode,
+      newPassword: nextPassword,
+    });
+    return { email: username };
+  },
+
+  async changePassword(currentPassword, newPassword) {
+    if (!isCognitoConfigured) throw new Error('Cognito is not configured.');
+    const oldPassword = String(currentPassword || '').trim();
+    const nextPassword = String(newPassword || '').trim();
+    if (!oldPassword || !nextPassword) {
+      throw new Error('Current and new passwords are required.');
+    }
+    await amplifyUpdatePassword({ oldPassword, newPassword: nextPassword });
   },
 
   async signOut() {

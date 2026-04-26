@@ -31,6 +31,14 @@ function Login({ onLogin }) {
   const [token, setToken] = useState('')
   const [resendCooldown, setResendCooldown] = useState(0)
   const [pendingPassword, setPendingPassword] = useState('') // used for Cognito auto sign-in after confirm
+  const [forgotOpen, setForgotOpen] = useState(false)
+  const [forgotEmail, setForgotEmail] = useState('')
+  const [forgotCode, setForgotCode] = useState('')
+  const [forgotNewPassword, setForgotNewPassword] = useState('')
+  const [forgotConfirmPassword, setForgotConfirmPassword] = useState('')
+  const [forgotSubmittedEmail, setForgotSubmittedEmail] = useState('')
+  const [forgotSubmitting, setForgotSubmitting] = useState(false)
+  const [forgotError, setForgotError] = useState('')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -157,6 +165,83 @@ function Login({ onLogin }) {
     setPendingVerificationEmail(null)
     setPendingPassword('')
     setToken('')
+    setForgotOpen(false)
+    setForgotError('')
+  }
+
+  const openForgotPassword = () => {
+    setForgotOpen(true)
+    setForgotError('')
+    setForgotEmail(email.trim())
+    setForgotCode('')
+    setForgotNewPassword('')
+    setForgotConfirmPassword('')
+    setForgotSubmittedEmail('')
+  }
+
+  const requestForgotCode = async () => {
+    setForgotError('')
+    const normalizedEmail = forgotEmail.trim().toLowerCase()
+    if (!normalizedEmail) {
+      setForgotError('Please enter your email address.')
+      return
+    }
+
+    setForgotSubmitting(true)
+    try {
+      await auth.requestPasswordReset(normalizedEmail)
+      setForgotSubmittedEmail(normalizedEmail)
+      setForgotCode('')
+      setForgotNewPassword('')
+      setForgotConfirmPassword('')
+    } catch (err) {
+      setForgotError(err.message || 'Failed to send password reset code.')
+    } finally {
+      setForgotSubmitting(false)
+    }
+  }
+
+  const confirmForgotReset = async () => {
+    setForgotError('')
+    if (!forgotSubmittedEmail) {
+      setForgotError('Please request a code first.')
+      return
+    }
+    if (forgotCode.replace(/\D/g, '').length !== 6) {
+      setForgotError('Enter the 6-digit verification code.')
+      return
+    }
+    if (!forgotNewPassword || !forgotConfirmPassword) {
+      setForgotError('Please enter and confirm your new password.')
+      return
+    }
+    if (forgotNewPassword.length < 8) {
+      setForgotError('New password must be at least 8 characters.')
+      return
+    }
+    if (forgotNewPassword !== forgotConfirmPassword) {
+      setForgotError('Passwords do not match.')
+      return
+    }
+
+    setForgotSubmitting(true)
+    try {
+      await auth.confirmPasswordReset(
+        forgotSubmittedEmail,
+        forgotCode.replace(/\D/g, '').slice(0, 6),
+        forgotNewPassword,
+      )
+      setForgotOpen(false)
+      setForgotError('')
+      setError('Password reset successful. Please sign in with your new password.')
+      setPassword('')
+      setConfirmPassword('')
+      setEmail(forgotSubmittedEmail)
+    } catch (err) {
+      setForgotError(err.message || 'Failed to reset password.')
+    } finally {
+      setForgotSubmitting(false)
+    }
   }
 
   useEffect(() => {
@@ -300,7 +385,67 @@ function Login({ onLogin }) {
                   <label className="login-remember">
                     <input type="checkbox" /> Remember Me
                   </label>
-                  <a href="#" className="login-forgot">Forgot Password?</a>
+                  <button type="button" className="login-forgot" onClick={openForgotPassword} disabled={submitting}>
+                    Forgot Password?
+                  </button>
+                </div>
+              )}
+
+              {!isRegister && forgotOpen && (
+                <div className="login-field">
+                  {forgotError && <div className="login-error" role="alert">{forgotError}</div>}
+
+                  {!forgotSubmittedEmail ? (
+                    <>
+                      <input
+                        type="email"
+                        autoComplete="email"
+                        placeholder="Reset email address"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        disabled={forgotSubmitting}
+                        className="login-input"
+                      />
+                      <button type="button" className="login-submit" disabled={forgotSubmitting} onClick={requestForgotCode}>
+                        {forgotSubmitting ? 'Sending…' : 'Send reset code'}
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        autoComplete="one-time-code"
+                        placeholder="6-digit code"
+                        maxLength={6}
+                        value={forgotCode}
+                        onChange={(e) => setForgotCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                        disabled={forgotSubmitting}
+                        className="login-input"
+                      />
+                      <input
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder="New password"
+                        value={forgotNewPassword}
+                        onChange={(e) => setForgotNewPassword(e.target.value)}
+                        disabled={forgotSubmitting}
+                        className="login-input"
+                      />
+                      <input
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder="Confirm new password"
+                        value={forgotConfirmPassword}
+                        onChange={(e) => setForgotConfirmPassword(e.target.value)}
+                        disabled={forgotSubmitting}
+                        className="login-input"
+                      />
+                      <button type="button" className="login-submit" disabled={forgotSubmitting} onClick={confirmForgotReset}>
+                        {forgotSubmitting ? 'Resetting…' : 'Reset password'}
+                      </button>
+                    </>
+                  )}
                 </div>
               )}
 

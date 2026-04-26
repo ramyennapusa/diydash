@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import apiClient from '../services/api'
+import { auth, isCognitoConfigured } from '../services/auth'
 import './Account.css'
 
 const COUNTRY_OPTIONS = [
@@ -210,6 +211,8 @@ function Account({ user, onProfileUpdate, onLogout }) {
   const [country, setCountry] = useState(user?.country ?? '')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [resetCode, setResetCode] = useState('')
+  const [resetCodeSent, setResetCodeSent] = useState(false)
   const [showPasswordForm, setShowPasswordForm] = useState(false)
   const [message, setMessage] = useState({ type: '', text: '' })
   const [saving, setSaving] = useState(false)
@@ -240,8 +243,20 @@ function Account({ user, onProfileUpdate, onLogout }) {
   const handleChangePassword = async (e) => {
     if (e) e.preventDefault()
     setMessage({ type: '', text: '' })
-    if (newPassword.length < 6) {
-      setMessage({ type: 'error', text: 'New password must be at least 6 characters.' })
+    if (!isCognitoConfigured) {
+      setMessage({ type: 'error', text: 'Password change is unavailable because Cognito is not configured.' })
+      return
+    }
+    if (!resetCodeSent) {
+      setMessage({ type: 'error', text: 'Please request a reset code first.' })
+      return
+    }
+    if (resetCode.replace(/\D/g, '').length !== 6) {
+      setMessage({ type: 'error', text: 'Please enter the 6-digit reset code.' })
+      return
+    }
+    if (newPassword.length < 8) {
+      setMessage({ type: 'error', text: 'New password must be at least 8 characters.' })
       return
     }
     if (newPassword !== confirmPassword) {
@@ -250,8 +265,10 @@ function Account({ user, onProfileUpdate, onLogout }) {
     }
     setPasswordSaving(true)
     try {
-      // Backend change-password API can be wired here when available
-      setMessage({ type: 'info', text: 'Password change is not yet available. Contact support if you need to reset your password.' })
+      await auth.confirmPasswordReset(user?.email, resetCode.replace(/\D/g, '').slice(0, 6), newPassword)
+      setMessage({ type: 'success', text: 'Password updated successfully.' })
+      setResetCode('')
+      setResetCodeSent(false)
       setNewPassword('')
       setConfirmPassword('')
       setShowPasswordForm(false)
@@ -264,9 +281,29 @@ function Account({ user, onProfileUpdate, onLogout }) {
 
   const handleCancelPassword = () => {
     setShowPasswordForm(false)
+    setResetCode('')
+    setResetCodeSent(false)
     setNewPassword('')
     setConfirmPassword('')
     setMessage({ type: '', text: '' })
+  }
+
+  const handleSendResetCode = async () => {
+    setMessage({ type: '', text: '' })
+    if (!isCognitoConfigured) {
+      setMessage({ type: 'error', text: 'Password change is unavailable because Cognito is not configured.' })
+      return
+    }
+    setPasswordSaving(true)
+    try {
+      await auth.requestPasswordReset(user?.email)
+      setResetCodeSent(true)
+      setMessage({ type: 'info', text: `Reset code sent to ${user?.email}.` })
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message || 'Failed to send reset code.' })
+    } finally {
+      setPasswordSaving(false)
+    }
   }
 
   const handleDeleteAccount = async () => {
@@ -336,6 +373,37 @@ function Account({ user, onProfileUpdate, onLogout }) {
           {showPasswordForm && (
             <div className="account-password-expanded">
               <div className="account-field">
+                {!resetCodeSent ? (
+                  <>
+                    <label>Reset code</label>
+                    <p className="account-hint">Send a 6-digit code to {user?.email} before updating your password.</p>
+                    <button
+                      type="button"
+                      className="account-button-secondary"
+                      onClick={handleSendResetCode}
+                      disabled={passwordSaving}
+                    >
+                      {passwordSaving ? 'Sending…' : 'Send reset code'}
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <label htmlFor="account-reset-code">6-digit reset code</label>
+                    <input
+                      id="account-reset-code"
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={6}
+                      value={resetCode}
+                      onChange={(e) => setResetCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                      className="account-input"
+                      autoComplete="one-time-code"
+                      placeholder="000000"
+                    />
+                  </>
+                )}
+              </div>
+              <div className="account-field">
                 <label htmlFor="account-new-password">New password</label>
                 <input
                   id="account-new-password"
@@ -344,8 +412,8 @@ function Account({ user, onProfileUpdate, onLogout }) {
                   onChange={(e) => setNewPassword(e.target.value)}
                   className="account-input"
                   autoComplete="new-password"
-                  placeholder="At least 6 characters"
-                  minLength={6}
+                  placeholder="At least 8 characters"
+                  minLength={8}
                 />
               </div>
               <div className="account-field">
@@ -371,7 +439,7 @@ function Account({ user, onProfileUpdate, onLogout }) {
                 <button
                   type="button"
                   className="account-submit"
-                  disabled={passwordSaving}
+                  disabled={passwordSaving || !resetCodeSent}
                   onClick={handleChangePassword}
                 >
                   {passwordSaving ? 'Updating…' : 'Update password'}
