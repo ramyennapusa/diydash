@@ -29,7 +29,7 @@ function UserMenu({ user, onLogout }) {
 
   const handleSupportClick = () => {
     setOpen(false)
-    window.location.href = 'mailto:support@draft2done.co?subject=Draft2Done%20Support'
+    window.location.href = 'mailto:support.draft2done@gmail.com?subject=Draft2Done%20Support'
   }
 
   const handleLogout = () => {
