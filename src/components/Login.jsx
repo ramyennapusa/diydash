@@ -26,6 +26,7 @@ function Login({ onLogin }) {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
+  const [success, setSuccess] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [pendingVerificationEmail, setPendingVerificationEmail] = useState(null)
   const [token, setToken] = useState('')
@@ -43,6 +44,7 @@ function Login({ onLogin }) {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
     if (!isCognitoConfigured) {
       setError(COGNITO_REQUIRED_MSG)
       return
@@ -102,6 +104,7 @@ function Login({ onLogin }) {
   const handleVerifySubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setSuccess('')
     if (!isCognitoConfigured) {
       setError(COGNITO_REQUIRED_MSG)
       return
@@ -144,6 +147,7 @@ function Login({ onLogin }) {
   const handleResendCode = async () => {
     if (resendCooldown > 0) return
     setError('')
+    setSuccess('')
     setSubmitting(true)
     try {
       const { resendSignUpCode } = await import('aws-amplify/auth')
@@ -159,6 +163,7 @@ function Login({ onLogin }) {
   const switchMode = () => {
     setIsRegister((prev) => !prev)
     setError('')
+    setSuccess('')
     setEmail('')
     setPassword('')
     setConfirmPassword('')
@@ -172,6 +177,7 @@ function Login({ onLogin }) {
   const openForgotPassword = () => {
     setForgotOpen(true)
     setForgotError('')
+    setSuccess('')
     setForgotEmail(email.trim())
     setForgotCode('')
     setForgotNewPassword('')
@@ -233,7 +239,8 @@ function Login({ onLogin }) {
       )
       setForgotOpen(false)
       setForgotError('')
-      setError('Password reset successful. Please sign in with your new password.')
+      setError('')
+      setSuccess('Password reset successful. Please sign in with your new password.')
       setPassword('')
       setConfirmPassword('')
       setEmail(forgotSubmittedEmail)
@@ -334,67 +341,10 @@ function Login({ onLogin }) {
             )}
             <form onSubmit={handleSubmit} className="login-form">
               {error && <div className="login-error" role="alert">{error}</div>}
-
-              <div className="login-field">
-                <input
-                  id="login-email"
-                  type="email"
-                  autoComplete="email"
-                  placeholder="Email Address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={submitting}
-                  className="login-input"
-                />
-              </div>
-
-              <div className="login-field">
-                <div className="login-input-wrap">
-                  <input
-                    id="login-password"
-                    type={showPassword ? 'text' : 'password'}
-                    autoComplete={isRegister ? 'new-password' : 'current-password'}
-                    placeholder="Password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    disabled={submitting}
-                    className="login-input"
-                  />
-                  <button type="button" className="login-icon-btn" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? <IconEyeClosed /> : <IconEyeOpen />}</button>
-                  <span className="login-input-icon" aria-hidden><IconInfo /></span>
-                </div>
-              </div>
-
-              {isRegister && (
-                <div className="login-field">
-                  <input
-                    id="login-confirm-password"
-                    type="password"
-                    autoComplete="new-password"
-                    placeholder="Confirm Password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    disabled={submitting}
-                    className="login-input"
-                  />
-                </div>
-              )}
-
-              {!isRegister && (
-                <div className="login-options">
-                  <label className="login-remember">
-                    <input type="checkbox" /> Remember Me
-                  </label>
-                  <button type="button" className="login-forgot" onClick={openForgotPassword} disabled={submitting}>
-                    Forgot Password?
-                  </button>
-                </div>
-              )}
-
-              {!isRegister && forgotOpen && (
+              {success && <div className="login-success" role="status">{success}</div>}
+              {!isRegister && forgotOpen ? (
                 <div className="login-field">
                   {forgotError && <div className="login-error" role="alert">{forgotError}</div>}
-
                   {!forgotSubmittedEmail ? (
                     <>
                       <input
@@ -413,10 +363,12 @@ function Login({ onLogin }) {
                   ) : (
                     <>
                       <input
+                        id="forgot-reset-code"
                         type="text"
                         inputMode="numeric"
                         autoComplete="one-time-code"
-                        placeholder="6-digit code"
+                        placeholder="Enter 6-digit code"
+                        aria-label="Reset code"
                         maxLength={6}
                         value={forgotCode}
                         onChange={(e) => setForgotCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
@@ -446,18 +398,86 @@ function Login({ onLogin }) {
                       </button>
                     </>
                   )}
+                  <div className="login-switch">
+                    <button
+                      type="button"
+                      className="login-switch-button"
+                      onClick={switchMode}
+                      disabled={forgotSubmitting}
+                    >
+                      Don't have an account? Sign Up
+                    </button>
+                  </div>
                 </div>
+              ) : (
+                <>
+                  <div className="login-field">
+                    <input
+                      id="login-email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="Email Address"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={submitting}
+                      className="login-input"
+                    />
+                  </div>
+
+                  <div className="login-field">
+                    <div className="login-input-wrap">
+                      <input
+                        id="login-password"
+                        type={showPassword ? 'text' : 'password'}
+                        autoComplete={isRegister ? 'new-password' : 'current-password'}
+                        placeholder="Password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        disabled={submitting}
+                        className="login-input"
+                      />
+                      <button type="button" className="login-icon-btn" onClick={() => setShowPassword(!showPassword)} aria-label={showPassword ? 'Hide password' : 'Show password'}>{showPassword ? <IconEyeClosed /> : <IconEyeOpen />}</button>
+                      <span className="login-input-icon" aria-hidden><IconInfo /></span>
+                    </div>
+                  </div>
+
+                  {isRegister && (
+                    <div className="login-field">
+                      <input
+                        id="login-confirm-password"
+                        type="password"
+                        autoComplete="new-password"
+                        placeholder="Confirm Password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        disabled={submitting}
+                        className="login-input"
+                      />
+                    </div>
+                  )}
+
+                  {!isRegister && (
+                    <div className="login-options">
+                      <label className="login-remember">
+                        <input type="checkbox" /> Remember Me
+                      </label>
+                      <button type="button" className="login-forgot" onClick={openForgotPassword} disabled={submitting}>
+                        Forgot Password?
+                      </button>
+                    </div>
+                  )}
+
+                  <button type="submit" className="login-submit" disabled={submitting}>
+                    {submitting ? (isRegister ? 'Creating account…' : 'Signing in…') : (isRegister ? 'Create account' : 'LOGIN')}
+                  </button>
+
+                  <div className="login-switch">
+                    <button type="button" className="login-switch-button" onClick={switchMode} disabled={submitting}>
+                      {isRegister ? 'Already have an account? Log in' : "Don't have an account? Sign Up"}
+                    </button>
+                  </div>
+                </>
               )}
-
-              <button type="submit" className="login-submit" disabled={submitting}>
-                {submitting ? (isRegister ? 'Creating account…' : 'Signing in…') : (isRegister ? 'Create account' : 'LOGIN')}
-              </button>
-
-              <div className="login-switch">
-                <button type="button" className="login-switch-button" onClick={switchMode} disabled={submitting}>
-                  {isRegister ? 'Already have an account? Log in' : "Don't have an account? Sign Up"}
-                </button>
-              </div>
             </form>
           </div>
         </div>
