@@ -902,10 +902,10 @@ const ProjectDetails = () => {
               currentStatus={project.status}
               isShared={collaboratorsList.length > 0}
               collaborators={[
-                ...(project.ownerEmail ? [{ email: project.ownerEmail, label: project.ownerEmail.toLowerCase() === currentUserEmail ? 'You (owner)' : 'Owner' }] : []),
+                ...(project.ownerEmail ? [{ email: project.ownerEmail, label: project.ownerEmail }] : []),
                 ...(collaboratorsList || [])
                   .filter(c => c.email && c.email.toLowerCase() !== (project.ownerEmail || '').toLowerCase())
-                  .map(c => ({ email: c.email, label: c.email.toLowerCase() === currentUserEmail ? 'You' : c.email }))
+                  .map(c => ({ email: c.email, label: c.email }))
               ]}
             />
           )}
