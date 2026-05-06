@@ -479,6 +479,11 @@ function Login({ onLogin }) {
                 </>
               )}
             </form>
+            <div className="login-support-corner">
+              <a href="https://www.draft2done.co/support" className="login-support-link">
+                Support
+              </a>
+            </div>
           </div>
         </div>
       </div>

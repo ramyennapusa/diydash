@@ -12,6 +12,7 @@ import ProjectDetails from './components/ProjectDetails'
 import Account from './components/Account'
 import ErrorBoundary from './components/ErrorBoundary'
 import PrivacyPolicy from './components/PrivacyPolicy'
+import Support from './components/Support'
 
 const STORAGE_KEY = 'draft2done_user'
 
@@ -149,6 +150,7 @@ function App() {
               />
               <Route path="/invite" element={<InviteLanding user={user} />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
+              <Route path="/support" element={<Support />} />
             </Routes>
           </main>
         </ErrorBoundary>

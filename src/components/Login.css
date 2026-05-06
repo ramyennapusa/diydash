@@ -208,12 +208,13 @@ body:has(.login-page) {
   max-width: 400px;
   height: 100%;
   overflow-y: auto;
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: center;
   background: var(--d2d-modal-bg);
   border-radius: 12px;
-  padding: 2rem;
+  padding: 2rem 2rem 2.75rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
 }
 
@@ -400,6 +401,24 @@ body:has(.login-page) {
 .login-switch-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+.login-support-corner {
+  position: absolute;
+  right: 2rem;
+  bottom: 1rem;
+}
+
+.login-support-link {
+  font-family: var(--d2d-font-sans);
+  font-size: 0.8125rem;
+  color: var(--d2d-charcoal);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.login-support-link:hover {
+  opacity: 0.8;
 }
 
 /* Verification view */
