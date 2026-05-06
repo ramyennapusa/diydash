@@ -22,18 +22,6 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
     previews: []
   })
 
-  // Debug: Log picture URLs when they change
-  React.useEffect(() => {
-    if (pictures && pictures.length > 0) {
-      console.log('ProjectPictures: Received pictures:', pictures.map(p => ({
-        id: p.id,
-        url: p.url,
-        urlType: p.url?.startsWith('http') ? 'presigned' : 's3-key',
-        caption: p.caption
-      })))
-    }
-  }, [pictures])
-
   const handleImageClick = (picture) => {
     setSelectedImage(picture)
     setZoomLevel(1) // Reset zoom when opening a new image
@@ -405,7 +393,7 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
         fileInput.value = ''
       }
 
-      // Refresh project data to get new presigned URLs
+      // Refresh project data so new pictures appear with resolved media URLs
       if (onUpdate) {
         console.log('Refreshing project data after picture upload...')
         await onUpdate()
@@ -751,7 +739,19 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
             
             <div className="lightbox-image-wrapper">
               <div className="lightbox-image-container">
-                {(selectedImage.key || selectedImage.url) && (selectedImage.url?.startsWith('http://') || selectedImage.url?.startsWith('https://')) ? (
+                {selectedImage.key ? (
+                  <ResolvedImage
+                    s3Key={selectedImage.key}
+                    fallbackUrl={null}
+                    alt={selectedImage.caption}
+                    className="lightbox-image"
+                    style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s ease' }}
+                    onClick={handleImageClickZoom}
+                    onDoubleClick={handleImageDoubleClickZoom}
+                    onContextMenu={handleImageRightClickZoom}
+                    title="Click to zoom in, double-click to reset, right-click to zoom out"
+                  />
+                ) : (selectedImage.url?.startsWith('http://') || selectedImage.url?.startsWith('https://')) ? (
                   <img
                     src={selectedImage.url}
                     alt={selectedImage.caption}
@@ -764,7 +764,7 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
                   />
                 ) : (
                   <ResolvedImage
-                    s3Key={selectedImage.key || selectedImage.url}
+                    s3Key={selectedImage.url}
                     fallbackUrl={null}
                     alt={selectedImage.caption}
                     className="lightbox-image"

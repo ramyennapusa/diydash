@@ -26,4 +26,16 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
     },
   },
+  {
+    files: ['**/*.{test,spec}.{js,jsx}', 'src/setupTests.js', 'src/services/__mocks__/**/*.js'],
+    languageOptions: {
+      globals: { ...globals.browser, ...globals.jest },
+    },
+  },
+  {
+    files: ['babel.config.js'],
+    languageOptions: {
+      globals: globals.nodeBuiltin,
+    },
+  },
 ])

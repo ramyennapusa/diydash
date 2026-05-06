@@ -1,9 +1,16 @@
 import '@testing-library/jest-dom'
 import { TextEncoder, TextDecoder } from 'util'
 
+jest.mock('./services/api')
+
 // Polyfills for React Router compatibility
-global.TextEncoder = TextEncoder
-global.TextDecoder = TextDecoder
+globalThis.TextEncoder = TextEncoder
+globalThis.TextDecoder = TextDecoder
+
+afterEach(() => {
+  sessionStorage.clear()
+  jest.clearAllMocks()
+})
 
 // Mock window.matchMedia for responsive design tests
 Object.defineProperty(window, 'matchMedia', {

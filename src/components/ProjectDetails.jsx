@@ -215,7 +215,7 @@ const ProjectDetails = () => {
       setError(null)
       
       await apiClient.updateProject(id, { title: titleValue.trim() })
-      // Refetch project so we get presigned URLs for image/pictures (update returns raw S3 keys)
+      // Refetch so GET resolves image/picture media URLs (API returns bucket URLs + keys as needed)
       await fetchProject(false)
       setEditingTitle(false)
     } catch (err) {
@@ -264,7 +264,7 @@ const ProjectDetails = () => {
       setError(null)
       
       await apiClient.updateProject(id, { description: descriptionValue })
-      // Refetch project so we get presigned URLs for image/pictures (update returns raw S3 keys)
+      // Refetch so GET resolves image/picture media URLs (API returns bucket URLs + keys as needed)
       await fetchProject(false)
       setEditingDescription(false)
     } catch (err) {
@@ -327,7 +327,7 @@ const ProjectDetails = () => {
       const result = await apiClient.updateProject(id, projectData)
       console.log('Image upload successful, result:', result)
       
-      // Refresh project to get presigned URL for the new image (without showing loading spinner)
+      // Refresh project so the new image is reflected (without showing loading spinner)
       await fetchProject(false)
       
       // Clear preview

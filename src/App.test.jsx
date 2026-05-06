@@ -6,15 +6,27 @@ import Dashboard from './components/Dashboard'
 import ProjectsList from './components/ProjectsList'
 import ProjectDetails from './components/ProjectDetails'
 
+const STORAGE_KEY = 'draft2done_user'
+
 describe('App Component', () => {
-  test('renders without crashing', () => {
-    render(<App />)
-    expect(screen.getByText('Draft2Done')).toBeInTheDocument()
+  beforeEach(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ email: 'test@example.com' }))
   })
 
-  test('renders ProjectsList component on default route', () => {
+  afterEach(() => {
+    localStorage.removeItem(STORAGE_KEY)
+  })
+
+  test('renders without crashing', async () => {
     render(<App />)
-    expect(screen.getByText('My DIY Projects')).toBeInTheDocument()
+    expect(await screen.findByText('Draft2Done')).toBeInTheDocument()
+  })
+
+  test('renders ProjectsList on default route', async () => {
+    render(<App />)
+    expect(
+      await screen.findByRole('button', { name: 'Create new project' })
+    ).toBeInTheDocument()
   })
 
   test('renders Dashboard component on /dashboard route', () => {
