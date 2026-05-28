@@ -356,19 +356,17 @@
 
 .task-title-edit-input {
   width: 100%;
-  max-width: 420px;
-  border: 1px solid #b18458;
-  border-radius: 0.375rem;
-  font-size: 1rem;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 1.125rem;
   font-weight: 600;
   color: #1f2937;
-  padding: 0.3rem 0.5rem;
-  outline: none;
-  background: #fff;
-}
-
-.task-title-edit-input:focus {
-  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.15);
+  padding: 0;
+  margin: 0;
+  line-height: 1.4;
+  font-family: inherit;
+  caret-color: #b18458;
 }
 
 .task-item:hover .task-delete-button {
@@ -535,6 +533,11 @@
 .task-content {
   flex: 1;
   min-width: 0;
+  cursor: text;
+}
+
+.task-item.completed .task-content {
+  cursor: default;
 }
 
 .task-header {

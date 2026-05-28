@@ -103,34 +103,50 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
         return
       }
 
+      // Optimistic update: show task immediately, no waiting for API
+      const tempId = `temp-${Date.now()}`
+      const maxOrder = tasks.reduce((max, t) => Math.max(max, t.order || 0), 0)
+      const optimisticTask = {
+        id: tempId,
+        title: text,
+        description: '',
+        completed: false,
+        order: maxOrder + 1
+      }
+      setTasks(prev => [...prev, optimisticTask].sort((a, b) => (a.order || 0) - (b.order || 0)))
+      if (editorRef.current) editorRef.current.textContent = ''
       setCreating(true)
+
       try {
         const response = await apiClient.addTask(projectId, {
           title: text,
           description: '',
           completed: false
         })
-        if (editorRef.current) {
-          editorRef.current.textContent = ''
-        }
-        // Add the new task to local state from API response — no full refetch or parent refresh
         const created = response?.task
         if (created) {
-          const newTask = {
-            id: created.id,
-            title: created.title || text,
-            description: created.description || '',
-            completed: created.completed || false,
-            order: created.order != null ? created.order : (tasks.length + 1)
-          }
-          setTasks(prev => [...prev, newTask].sort((a, b) => (a.order || 0) - (b.order || 0)))
+          // Replace temp task with real server task
+          setTasks(prev =>
+            prev.map(t =>
+              t.id === tempId
+                ? {
+                    id: created.id,
+                    title: created.title || text,
+                    description: created.description || '',
+                    completed: created.completed || false,
+                    order: created.order != null ? created.order : optimisticTask.order
+                  }
+                : t
+            ).sort((a, b) => (a.order || 0) - (b.order || 0))
+          )
         } else {
-          // Fallback: refetch only tasks if API didn't return the task
           await fetchTasks()
         }
-        // Do not call onUpdate() — it triggers full project refetch and page refresh
       } catch (err) {
         console.error('Failed to create task:', err)
+        // Rollback: remove the optimistic task and restore editor text
+        setTasks(prev => prev.filter(t => t.id !== tempId))
+        if (editorRef.current) editorRef.current.textContent = text
         alert(err.message || 'Failed to create task')
       } finally {
         setCreating(false)
@@ -428,7 +444,7 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
     if (!projectId || savingEditTaskId) return
     const nextTitle = editTaskText.trim()
     if (!nextTitle) {
-      alert('Task title cannot be empty.')
+      handleCancelEditTask()
       return
     }
 
@@ -734,6 +750,7 @@ const TaskItem = ({
   isAssigning
 }) => {
   const assignWrapperRef = useRef(null)
+  const skipBlurSaveRef = useRef(false)
   const assigneeLabel = task.assignee && collaborators.find(c => (c.email || '').toLowerCase() === (task.assignee || '').toLowerCase())
   const assigneeEmail = (task.assignee || '').trim()
   const hasAssignee = !!assigneeEmail
@@ -764,7 +781,10 @@ const TaskItem = ({
         </label>
       </div>
       
-      <div className="task-content">
+      <div
+        className="task-content"
+        onClick={() => !isCompleted && !isEditing && onEditStart()}
+      >
         <div className="task-header">
           {isEditing ? (
             <input
@@ -779,8 +799,16 @@ const TaskItem = ({
                 }
                 if (e.key === 'Escape') {
                   e.preventDefault()
+                  skipBlurSaveRef.current = true
                   onEditCancel()
                 }
+              }}
+              onBlur={() => {
+                if (skipBlurSaveRef.current) {
+                  skipBlurSaveRef.current = false
+                  return
+                }
+                onEditSave()
               }}
               autoFocus
               disabled={isSavingEdit}
@@ -797,7 +825,7 @@ const TaskItem = ({
             </div>
           )}
         </div>
-        
+
         <p className="task-description">{task.description}</p>
       </div>
 
@@ -840,40 +868,6 @@ const TaskItem = ({
         </div>
       )}
 
-      {isEditing ? (
-        <div className="task-edit-actions">
-          <button
-            type="button"
-            className="task-edit-action-button task-edit-save-button"
-            onClick={onEditSave}
-            disabled={isSavingEdit}
-            title="Save task"
-            aria-label="Save task"
-          >
-            ✓
-          </button>
-          <button
-            type="button"
-            className="task-edit-action-button task-edit-cancel-button"
-            onClick={onEditCancel}
-            disabled={isSavingEdit}
-            title="Cancel edit"
-            aria-label="Cancel edit"
-          >
-            ✕
-          </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          className="task-edit-button"
-          onClick={onEditStart}
-          title="Edit task"
-          aria-label="Edit task"
-        >
-          ✏️
-        </button>
-      )}
       
       <button
         className="task-delete-button"
