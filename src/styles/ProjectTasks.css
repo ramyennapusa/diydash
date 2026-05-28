@@ -1000,50 +1000,48 @@
   cursor: not-allowed;
 }
 
-/* Notepad-style task input */
+/* Canvas task editor */
 .task-notepad-container {
-zx   padding-top: 1rem;
-  border-top: 2px solid #b18458;
-  background: linear-gradient(to bottom, rgba(249, 115, 22, 0.05), transparent);
-  padding: 1rem;
-  border-radius: 0.5rem;
-  margin-left: -1rem;
-  margin-right: -1rem;
+  border-top: 1px solid rgba(177, 132, 88, 0.3);
+  padding: 0.75rem 0 0;
+  margin-top: 0.5rem;
+  min-height: 160px;
+  cursor: text;
+  display: flex;
+  flex-direction: column;
 }
 
-.task-notepad-input {
+.task-rich-editor {
+  flex: 1;
   width: 100%;
+  min-height: 140px;
   font-size: 1rem;
   color: #1f2937;
-  border: 2px solid #b18458;
   outline: none;
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  background: #ede4d8;
-  resize: none;
-  min-height: 24px;
-  line-height: 1.5;
-  overflow: hidden;
-  border-radius: 0.5rem;
-  -webkit-text-security: none;
-  -moz-text-security: none;
-  text-security: none;
-  transition: all 0.2s ease;
+  line-height: 1.7;
+  cursor: text;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: transparent;
+  border: none;
+  caret-color: #b18458;
 }
 
-.task-notepad-input::placeholder {
+.task-rich-editor:empty::before {
+  content: attr(data-placeholder);
   color: #fb923c;
   font-style: italic;
+  pointer-events: none;
+  display: block;
 }
 
-.task-notepad-input:focus {
+.task-rich-editor:focus {
   outline: none;
-  border-color: #93693f;
-  background: #fff;
-  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
 }
 
-.task-notepad-input:disabled {
+.task-rich-editor[contenteditable="false"] {
   opacity: 0.6;
   cursor: not-allowed;
 }
@@ -1065,7 +1063,7 @@ zx   padding-top: 1rem;
     padding: 1rem;
   }
 
-  .task-notepad-input {
+  .task-rich-editor {
     font-size: 0.9375rem;
   }
 
@@ -1222,27 +1220,19 @@ zx   padding-top: 1rem;
   }
 }
 
-/* Dark mode support for notepad */
+/* Dark mode support for canvas editor */
 @media (prefers-color-scheme: dark) {
   .task-notepad-container {
-    border-top-color: #b18458;
-    background: linear-gradient(to bottom, rgba(249, 115, 22, 0.1), transparent);
+    border-top-color: rgba(177, 132, 88, 0.4);
   }
 
-  .task-notepad-input {
+  .task-rich-editor {
     color: #f9fafb;
-    border-color: #b18458;
-    background: #1c1917;
+    caret-color: #fb923c;
   }
 
-  .task-notepad-input::placeholder {
+  .task-rich-editor:empty::before {
     color: #fb923c;
-  }
-
-  .task-notepad-input:focus {
-    border-color: #93693f;
-    background: #292524;
-    box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
   }
 
   .completion-modal {

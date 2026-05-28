@@ -7,7 +7,6 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [taskStates, setTaskStates] = useState({})
-  const [newTaskText, setNewTaskText] = useState('')
   const [creating, setCreating] = useState(false)
   const [draggedTaskId, setDraggedTaskId] = useState(null)
   const [draggedOverIndex, setDraggedOverIndex] = useState(null)
@@ -22,7 +21,7 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
   const [editingTaskId, setEditingTaskId] = useState(null)
   const [editTaskText, setEditTaskText] = useState('')
   const [savingEditTaskId, setSavingEditTaskId] = useState(null)
-  const textareaRef = useRef(null)
+  const editorRef = useRef(null)
 
   const taskToPayload = (task) => ({
     id: task.id,
@@ -95,19 +94,11 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
     }
   }, [currentStatus, tasks])
 
-  // Auto-resize textarea
-  useEffect(() => {
-    if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto'
-      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`
-    }
-  }, [newTaskText])
-
   const handleNewTaskKeyDown = async (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      const text = newTaskText.trim()
-      
+      const text = editorRef.current?.textContent?.trim() || ''
+
       if (!text || !projectId || creating) {
         return
       }
@@ -119,9 +110,8 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
           description: '',
           completed: false
         })
-        setNewTaskText('')
-        if (textareaRef.current) {
-          textareaRef.current.style.height = 'auto'
+        if (editorRef.current) {
+          editorRef.current.textContent = ''
         }
         // Add the new task to local state from API response — no full refetch or parent refresh
         const created = response?.task
@@ -499,17 +489,26 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
           </div>
         </div>
 
-        {/* Notepad-style Task Input */}
-        <div className="task-notepad-container">
-          <textarea
-            ref={textareaRef}
-            className="task-notepad-input"
-            placeholder="Type a task and press Enter..."
-            value={newTaskText}
-            onChange={(e) => setNewTaskText(e.target.value)}
+        {/* Canvas Task Editor */}
+        <div
+          className="task-notepad-container"
+          onClick={() => editorRef.current?.focus()}
+        >
+          <div
+            ref={editorRef}
+            contentEditable={!creating}
+            suppressContentEditableWarning
+            className="task-rich-editor"
+            data-placeholder="Type a task and press Enter..."
             onKeyDown={handleNewTaskKeyDown}
-            rows={1}
-            disabled={creating}
+            onPaste={(e) => {
+              e.preventDefault()
+              const text = e.clipboardData.getData('text/plain')
+              document.execCommand('insertText', false, text)
+            }}
+            role="textbox"
+            aria-label="New task input"
+            aria-multiline="false"
           />
         </div>
       </div>
@@ -592,17 +591,26 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
         </div>
       </div>
 
-      {/* Notepad-style Task Input */}
-      <div className="task-notepad-container">
-        <textarea
-          ref={textareaRef}
-          className="task-notepad-input"
-          placeholder="Type a task and press Enter..."
-          value={newTaskText}
-          onChange={(e) => setNewTaskText(e.target.value)}
+      {/* Canvas Task Editor */}
+      <div
+        className="task-notepad-container"
+        onClick={() => editorRef.current?.focus()}
+      >
+        <div
+          ref={editorRef}
+          contentEditable={!creating}
+          suppressContentEditableWarning
+          className="task-rich-editor"
+          data-placeholder="Type a task and press Enter..."
           onKeyDown={handleNewTaskKeyDown}
-          rows={1}
-          disabled={creating}
+          onPaste={(e) => {
+            e.preventDefault()
+            const text = e.clipboardData.getData('text/plain')
+            document.execCommand('insertText', false, text)
+          }}
+          role="textbox"
+          aria-label="New task input"
+          aria-multiline="false"
         />
       </div>
 
