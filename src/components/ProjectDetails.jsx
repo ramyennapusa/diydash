@@ -535,9 +535,14 @@ const ProjectDetails = ({ isDemo = false, demoData = null }) => {
               ← Back to my projects
             </button>
           ) : (
-            <button className="demo-banner-cta" onClick={() => navigate('/')}>
-              Sign up free to create your own →
-            </button>
+            <>
+              <button className="demo-banner-cta" onClick={() => navigate('/demo')}>
+                ← Browse demos
+              </button>
+              <button className="demo-banner-cta" onClick={() => navigate('/')}>
+                Sign up free →
+              </button>
+            </>
           )}
         </div>
       )}
