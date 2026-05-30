@@ -477,6 +477,29 @@ function ProjectsList() {
             <div className="loading-spinner"></div>
             <p>Loading projects...</p>
           </div>
+        ) : projects.length === 0 ? (
+          <div className="onboarding-welcome">
+            <div className="onboarding-icon">🛠️</div>
+            <h2 className="onboarding-title">Welcome to Draft2Done!</h2>
+            <p className="onboarding-text">
+              Plan, track, and complete your DIY projects — from a birthday party to a home renovation.
+            </p>
+            <div className="onboarding-actions">
+              <button
+                className="btn btn-primary"
+                onClick={() => setShowCreateModal(true)}
+                disabled={isCreating}
+              >
+                + Create my first project
+              </button>
+              <button
+                className="btn btn-secondary"
+                onClick={() => navigate('/demo')}
+              >
+                Explore a sample project
+              </button>
+            </div>
+          </div>
         ) : filteredAndSortedProjects.length === 0 ? (
           <div className="empty-state">
             <div className="empty-state-icon">🔍</div>
@@ -486,13 +509,11 @@ function ProjectsList() {
                 ? `No projects found matching "${searchQuery}". Try a different search term.`
                 : selectedStatuses.size === 0
                 ? 'No status filters selected. Please select at least one status to view projects.'
-                : selectedStatuses.size < statusOptions.length
-                ? `No projects found with the selected status filters. Try adjusting your filters.`
-                : 'Ready to start your first DIY adventure? Every great maker starts with a single project!'
+                : `No projects found with the selected status filters. Try adjusting your filters.`
               }
             </p>
             {selectedStatuses.size === 0 && (
-              <button 
+              <button
                 className="btn btn-primary"
                 onClick={() => setSelectedStatuses(new Set(['Planning', 'In Progress']))}
               >

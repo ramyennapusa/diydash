@@ -1,0 +1,43 @@
+export const DEMO_PROJECT = {
+  id: 'demo',
+  title: "Charlie's First Birthday Party",
+  description: "Planning a magical first birthday celebration for little Charlie — from venue to cake to decorations. Explore all the features Draft2Done has to offer using this sample project.",
+  status: 'In Progress',
+  image: '/demo/charlie-party-setup.png',
+  tasks: [
+    { id: 't1', title: 'Book the venue', completed: true, category: 'Planning', difficulty: 'Beginner', estimatedTime: '', description: 'Scout local community halls and garden spaces', order: 0, assignee: 'sarah@party.com' },
+    { id: 't2', title: 'Send invitations', completed: true, category: 'Planning', difficulty: 'Beginner', estimatedTime: '', description: '', order: 1, assignee: 'mike@party.com' },
+    { id: 't3', title: 'Order birthday cake', completed: false, category: 'Planning', difficulty: 'Beginner', estimatedTime: '', description: 'Smash cake for Charlie + main cake for guests', order: 2, assignee: 'sarah@party.com' },
+    { id: 't4', title: 'Buy balloon arch supplies', completed: false, category: 'Shopping', difficulty: 'Beginner', estimatedTime: '', description: '', order: 3, assignee: 'james@party.com' },
+    { id: 't5', title: 'Arrange finger foods and snacks', completed: false, category: 'Planning', difficulty: 'Intermediate', estimatedTime: '', description: '', order: 4, assignee: 'mike@party.com' },
+    { id: 't6', title: 'Set up photo booth corner', completed: false, category: 'Setup', difficulty: 'Beginner', estimatedTime: '', description: '', order: 5, assignee: 'james@party.com' },
+  ],
+  materials: [
+    { id: 'm1', name: 'Balloon pack (sage green & peach)', quantity: '3 packs', size: '', purchased: true, shoppingLink: 'https://www.amazon.com/s?k=sage+green+peach+party+balloons', notes: '' },
+    { id: 'm2', name: 'Happy Birthday banner', quantity: '1', size: "4' x 6'", purchased: true, shoppingLink: '', notes: '' },
+    { id: 'm3', name: 'Paper plates & cups (woodland animals theme)', quantity: '20 sets', size: '', purchased: false, shoppingLink: 'https://www.etsy.com/search?q=woodland+animals+birthday+paper+plates+cups', notes: '' },
+    { id: 'm4', name: 'Confetti & table scatter', quantity: '2 bags', size: '', purchased: false, shoppingLink: '', notes: '' },
+    { id: 'm5', name: 'Number 1 candle', quantity: '2', size: '', purchased: false, shoppingLink: 'https://www.amazon.com/s?k=number+1+first+birthday+candle', notes: '' },
+  ],
+  tools: [],
+  references: [
+    { id: 'r1', title: 'Birthday Party Game Ideas', url: 'https://www.wikihow.com/Birthday-Games', description: 'Fun game ideas to keep little ones entertained', sourceType: 'website', addedDate: '2025-01-15T10:00:00Z' },
+    { id: 'r2', title: 'DIY Balloon Arch Tutorial', url: 'https://www.youtube.com/results?search_query=diy+balloon+arch+tutorial', description: 'Easy balloon garland ideas for beginners', sourceType: 'youtube', addedDate: '2025-01-15T10:00:00Z' },
+    { id: 'r3', title: 'First Birthday Smash Cake Ideas', url: 'https://www.pinterest.com/search/pins/?q=first+birthday+smash+cake', description: 'Smash cake design inspiration', sourceType: 'pinterest', addedDate: '2025-01-15T10:00:00Z' },
+  ],
+  pictures: [
+    { id: 'p1', url: '/demo/charlie-cake-animals.png', key: null, caption: '', type: 'design', order: 0 },
+    { id: 'p2', url: '/demo/charlie-party-animals.png', key: null, caption: '', type: 'progress', order: 1 },
+    { id: 'p3', url: '/demo/charlie-berry-cake.png', key: null, caption: '', type: 'design', order: 2 },
+    { id: 'p4', url: '/demo/charlie-invitation.png', key: null, caption: '', type: 'progress', order: 3 },
+    { id: 'p5', url: '/demo/charlie-party-setup.png', key: null, caption: '', type: 'progress', order: 4 },
+  ],
+  role: 'owner',
+  ownerEmail: 'demo@draft2done.com',
+  createdDate: '2025-01-15T10:00:00Z',
+  collaborators: [
+    { email: 'sarah@party.com', permission: 'edit' },
+    { email: 'mike@party.com', permission: 'edit' },
+    { email: 'james@party.com', permission: 'view' },
+  ],
+}

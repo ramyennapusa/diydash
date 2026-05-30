@@ -10,6 +10,7 @@ import Dashboard from './components/Dashboard'
 import ProjectsList from './components/ProjectsList'
 import ProjectDetails from './components/ProjectDetails'
 import Account from './components/Account'
+import { DEMO_PROJECT } from './data/demoProject'
 import ErrorBoundary from './components/ErrorBoundary'
 import PrivacyPolicy from './components/PrivacyPolicy'
 import Support from './components/Support'
@@ -148,6 +149,7 @@ function App() {
                   )
                 }
               />
+              <Route path="/demo" element={<ProjectDetails isDemo demoData={DEMO_PROJECT} />} />
               <Route path="/invite" element={<InviteLanding user={user} />} />
               <Route path="/privacy" element={<PrivacyPolicy />} />
               <Route path="/support" element={<Support />} />

@@ -479,6 +479,15 @@ function Login({ onLogin }) {
                 </>
               )}
             </form>
+            <div className="login-demo-bar">
+              <button
+                type="button"
+                className="login-demo-link"
+                onClick={() => navigate('/demo')}
+              >
+                Explore a sample project
+              </button>
+            </div>
             <div className="login-support-corner">
               <a href="https://www.draft2done.co/support" className="login-support-link">
                 Support

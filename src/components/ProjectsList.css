@@ -536,6 +536,56 @@
   margin: 0 0 1.5rem 0;
 }
 
+/* New user onboarding welcome panel */
+.onboarding-welcome {
+  text-align: center;
+  padding: 4rem 2rem;
+  max-width: 520px;
+  margin: 3rem auto;
+}
+
+.onboarding-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.onboarding-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #000000;
+  margin: 0 0 0.75rem 0;
+}
+
+.onboarding-text {
+  font-size: 1rem;
+  color: #4b5563;
+  line-height: 1.6;
+  margin: 0 0 2rem 0;
+}
+
+.onboarding-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn-secondary {
+  background: transparent;
+  border: 1px solid #d1d5db;
+  color: #374151;
+  padding: 0.625rem 1.25rem;
+  border-radius: 6px;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-secondary:hover {
+  background: #f3f4f6;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .projects-grid {

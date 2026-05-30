@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react'
 import '../styles/ProjectTasks.css'
+import '../styles/DemoHints.css'
 import apiClient from '../services/api'
 
-const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusUpdate, currentStatus, isShared = false, collaborators = [] }) => {
+const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusUpdate, currentStatus, isShared = false, collaborators = [], isDemo = false }) => {
   const [tasks, setTasks] = useState(initialTasks)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
@@ -54,10 +55,10 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
 
   // Fetch tasks on mount and when projectId changes
   useEffect(() => {
+    if (isDemo) return
     if (projectId) {
       fetchTasks()
     } else if (initialTasks.length > 0) {
-      // Fallback to initialTasks if no projectId
       setTasks(initialTasks)
     }
   }, [projectId])
@@ -546,14 +547,19 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
     <div className="project-tasks">
       {/* Progress Bar */}
       {totalTasks > 0 && (
-        <div className="progress-overview">
-          <div className="progress-bar-container">
-            <span className="progress-percentage">{progressPercentage}%</span>
-            <div className="progress-bar">
-              <div 
-                className="progress-fill" 
-                style={{ width: `${progressPercentage}%` }}
-              ></div>
+        <div className="progress-hint-wrapper">
+          {isDemo && (
+            <div className="demo-hint demo-hint--progress">Track your progress at a glance</div>
+          )}
+          <div className="progress-overview">
+            <div className="progress-bar-container">
+              <span className="progress-percentage">{progressPercentage}%</span>
+              <div className="progress-bar">
+                <div
+                  className="progress-fill"
+                  style={{ width: `${progressPercentage}%` }}
+                ></div>
+              </div>
             </div>
           </div>
         </div>
@@ -580,10 +586,14 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, index)}
                 className={`task-drag-wrapper ${draggedTaskId === task.id ? 'dragging' : ''} ${draggedOverIndex === index ? 'drag-over' : ''}`}
+                style={isDemo && index === 0 ? { position: 'relative' } : undefined}
               >
+                {isDemo && index === 0 && (
+                  <div className="demo-hint demo-hint--assign">Assign tasks to team members</div>
+                )}
                 <TaskItem
                   task={task}
-                  isCompleted={taskStates[task.id] || false}
+                  isCompleted={taskStates[task.id] !== undefined ? taskStates[task.id] : (task.completed || false)}
                   onToggle={() => handleTaskToggle(task.id)}
                   onDelete={() => handleDeleteTask(task.id)}
                   onEditStart={() => handleStartEditTask(task)}
@@ -600,6 +610,7 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
                   onAssignDropdownToggle={() => setAssignDropdownTaskId(prev => prev === task.id ? null : task.id)}
                   onAssignDropdownClose={() => setAssignDropdownTaskId(null)}
                   isAssigning={assigningTaskId === task.id}
+                  isDemo={isDemo}
                 />
               </div>
             ))
@@ -608,27 +619,29 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
       </div>
 
       {/* Canvas Task Editor */}
-      <div
-        className="task-notepad-container"
-        onClick={() => editorRef.current?.focus()}
-      >
+      {!isDemo && (
         <div
-          ref={editorRef}
-          contentEditable={!creating}
-          suppressContentEditableWarning
-          className="task-rich-editor"
-          data-placeholder="Type a task and press Enter..."
-          onKeyDown={handleNewTaskKeyDown}
-          onPaste={(e) => {
-            e.preventDefault()
-            const text = e.clipboardData.getData('text/plain')
-            document.execCommand('insertText', false, text)
-          }}
-          role="textbox"
-          aria-label="New task input"
-          aria-multiline="false"
-        />
-      </div>
+          className="task-notepad-container"
+          onClick={() => editorRef.current?.focus()}
+        >
+          <div
+            ref={editorRef}
+            contentEditable={!creating}
+            suppressContentEditableWarning
+            className="task-rich-editor"
+            data-placeholder="Type a task and press Enter..."
+            onKeyDown={handleNewTaskKeyDown}
+            onPaste={(e) => {
+              e.preventDefault()
+              const text = e.clipboardData.getData('text/plain')
+              document.execCommand('insertText', false, text)
+            }}
+            role="textbox"
+            aria-label="New task input"
+            aria-multiline="false"
+          />
+        </div>
+      )}
 
       {/* Completion Celebration Modal */}
       {showCompletionModal && (
@@ -747,7 +760,8 @@ const TaskItem = ({
   assignDropdownOpen,
   onAssignDropdownToggle,
   onAssignDropdownClose,
-  isAssigning
+  isAssigning,
+  isDemo = false
 }) => {
   const assignWrapperRef = useRef(null)
   const skipBlurSaveRef = useRef(false)
@@ -773,7 +787,8 @@ const TaskItem = ({
           type="checkbox"
           id={`task-${task.id}`}
           checked={isCompleted}
-          onChange={onToggle}
+          onChange={isDemo ? undefined : onToggle}
+          readOnly={isDemo}
           className="task-checkbox"
         />
         <label htmlFor={`task-${task.id}`} className="checkbox-label">
@@ -783,7 +798,7 @@ const TaskItem = ({
       
       <div
         className="task-content"
-        onClick={() => !isCompleted && !isEditing && onEditStart()}
+        onClick={() => !isDemo && !isCompleted && !isEditing && onEditStart()}
       >
         <div className="task-header">
           {isEditing ? (
@@ -858,25 +873,28 @@ const TaskItem = ({
           <button
             type="button"
             className="task-assign-button"
-            onClick={(e) => { e.stopPropagation(); onAssignDropdownToggle(); }}
+            onClick={isDemo ? undefined : (e) => { e.stopPropagation(); onAssignDropdownToggle(); }}
             title={hasAssignee ? assigneeEmail : 'Assign to collaborator'}
-            aria-label={hasAssignee ? `Change assignee (${assigneeEmail})` : 'Assign to collaborator'}
+            aria-label={hasAssignee ? `Assigned to ${assigneeEmail}` : 'Assign to collaborator'}
             aria-expanded={assignDropdownOpen}
+            style={isDemo ? { cursor: 'default' } : undefined}
           >
             {hasAssignee ? assigneeInitial : '👤'}
           </button>
         </div>
       )}
 
-      
-      <button
-        className="task-delete-button"
-        onClick={onDelete}
-        title="Delete task"
-        aria-label="Delete task"
-      >
-        ×
-      </button>
+
+      {!isDemo && (
+        <button
+          className="task-delete-button"
+          onClick={onDelete}
+          title="Delete task"
+          aria-label="Delete task"
+        >
+          ×
+        </button>
+      )}
     </div>
   )
 }

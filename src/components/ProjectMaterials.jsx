@@ -20,7 +20,7 @@ function shortLinkDisplay(url, maxLength = 50) {
   }
 }
 
-const ProjectMaterials = ({ materials = [], tools = [], projectId, onUpdate }) => {
+const ProjectMaterials = ({ materials = [], tools = [], projectId, onUpdate, isDemo = false }) => {
   const [activeTab, setActiveTab] = useState('materials')
   const [localMaterials, setLocalMaterials] = useState(materials)
   const [localTools, setLocalTools] = useState(tools)
@@ -630,7 +630,7 @@ const ProjectMaterials = ({ materials = [], tools = [], projectId, onUpdate }) =
       </div>
 
       {/* Quick Add Input */}
-      {projectId && activeTab === 'materials' && (
+      {projectId && !isDemo && activeTab === 'materials' && (
         <div className="quick-add-container">
           <input
             type="text"
@@ -643,7 +643,7 @@ const ProjectMaterials = ({ materials = [], tools = [], projectId, onUpdate }) =
         </div>
       )}
 
-      {projectId && activeTab === 'tools' && (
+      {projectId && !isDemo && activeTab === 'tools' && (
         <div className="quick-add-container">
           <input
             type="text"
@@ -659,28 +659,28 @@ const ProjectMaterials = ({ materials = [], tools = [], projectId, onUpdate }) =
       {/* Tab Content */}
       <div className="tab-content">
         {activeTab === 'materials' && (
-          <MaterialsList 
+          <MaterialsList
             materials={filteredMaterials}
             checklist={materialChecklist}
-            onToggle={handleMaterialToggle}
-            onEdit={projectId ? handleEdit : null}
-            onDelete={projectId ? handleDelete : null}
+            onToggle={isDemo ? null : handleMaterialToggle}
+            onEdit={isDemo || !projectId ? null : handleEdit}
+            onDelete={isDemo || !projectId ? null : handleDelete}
           />
         )}
-        
+
         {activeTab === 'tools' && (
-          <ToolsList 
+          <ToolsList
             tools={filteredTools}
             checklist={toolChecklist}
-            onToggle={handleToolToggle}
-            onEdit={projectId ? handleEditTools : null}
-            onDelete={projectId ? handleDeleteTools : null}
+            onToggle={isDemo ? null : handleToolToggle}
+            onEdit={isDemo || !projectId ? null : handleEditTools}
+            onDelete={isDemo || !projectId ? null : handleDeleteTools}
           />
         )}
       </div>
 
       {/* Add/Edit Form Modal for Materials */}
-      {showAddForm && projectId && (
+      {showAddForm && projectId && !isDemo && (
         <div className="form-modal-overlay" onClick={handleCancel}>
           <div className="form-modal" onClick={(e) => e.stopPropagation()}>
             <div className="form-header">
@@ -768,7 +768,7 @@ const ProjectMaterials = ({ materials = [], tools = [], projectId, onUpdate }) =
       )}
 
       {/* Add/Edit Form Modal for Tools */}
-      {showAddFormTools && projectId && (
+      {showAddFormTools && projectId && !isDemo && (
         <div className="form-modal-overlay" onClick={handleCancelTools}>
           <div className="form-modal" onClick={(e) => e.stopPropagation()}>
             <div className="form-header">
@@ -878,7 +878,8 @@ const MaterialsList = ({ materials, checklist, onToggle, onEdit, onDelete }) => 
               type="checkbox"
               id={`material-${material.id}`}
               checked={checklist[material.id] || false}
-              onChange={() => onToggle(material.id)}
+              onChange={onToggle ? () => onToggle(material.id) : undefined}
+              readOnly={!onToggle}
             />
             <label htmlFor={`material-${material.id}`} className="checkbox-label-simple">
               <span className="checkmark-simple">✓</span>
@@ -973,7 +974,8 @@ const ToolsList = ({ tools, checklist, onToggle, onEdit, onDelete }) => {
               type="checkbox"
               id={`tool-${tool.id}`}
               checked={checklist[tool.id] || false}
-              onChange={() => onToggle(tool.id)}
+              onChange={onToggle ? () => onToggle(tool.id) : undefined}
+              readOnly={!onToggle}
             />
             <label htmlFor={`tool-${tool.id}`} className="checkbox-label-simple">
               <span className="checkmark-simple">✓</span>

@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import '../styles/ProjectReferences.css'
 import apiClient from '../services/api'
 
-const ProjectReferences = ({ references = [], projectId, onUpdate }) => {
+const ProjectReferences = ({ references = [], projectId, onUpdate, isDemo = false }) => {
   const [showAddForm, setShowAddForm] = useState(false)
   const [editingId, setEditingId] = useState(null)
   const [filterType, setFilterType] = useState('all')
@@ -289,12 +289,14 @@ const ProjectReferences = ({ references = [], projectId, onUpdate }) => {
           <h3>References & Links</h3>
           <p>Save useful links, tutorials, and inspiration from social media and websites</p>
         </div>
-        <button 
-          className="add-reference-button"
-          onClick={() => setShowAddForm(true)}
-        >
-          + Add Reference
-        </button>
+        {!isDemo && (
+          <button
+            className="add-reference-button"
+            onClick={() => setShowAddForm(true)}
+          >
+            + Add Reference
+          </button>
+        )}
       </div>
 
       {/* Type Filter */}
@@ -340,22 +342,24 @@ const ProjectReferences = ({ references = [], projectId, onUpdate }) => {
                     {getSourceLabel(reference.sourceType || 'other')}
                   </span>
                 </div>
-                <div className="reference-actions">
-                  <button 
-                    className="edit-button"
-                    onClick={() => handleEdit(reference)}
-                    title="Edit"
-                  >
-                    ✏️
-                  </button>
-                  <button 
-                    className="delete-button"
-                    onClick={() => handleDelete(reference.id)}
-                    title="Delete"
-                  >
-                    🗑️
-                  </button>
-                </div>
+                {!isDemo && (
+                  <div className="reference-actions">
+                    <button
+                      className="edit-button"
+                      onClick={() => handleEdit(reference)}
+                      title="Edit"
+                    >
+                      ✏️
+                    </button>
+                    <button
+                      className="delete-button"
+                      onClick={() => handleDelete(reference.id)}
+                      title="Delete"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                )}
               </div>
               
               <h4 className="reference-title">{reference.title}</h4>
@@ -385,7 +389,7 @@ const ProjectReferences = ({ references = [], projectId, onUpdate }) => {
       </div>
 
       {/* Add/Edit Form Modal */}
-      {showAddForm && (
+      {showAddForm && !isDemo && (
         <div className="form-modal-overlay" onClick={handleCancel}>
           <div className="form-modal" onClick={(e) => e.stopPropagation()}>
             <div className="form-header">

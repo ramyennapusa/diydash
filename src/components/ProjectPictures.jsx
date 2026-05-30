@@ -4,7 +4,7 @@ import apiClient from '../services/api'
 import ResolvedImage from './ResolvedImage'
 import { getS3ObjectUrl, isS3MediaConfigured } from '../services/s3Media'
 
-const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
+const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false }) => {
   const [selectedImage, setSelectedImage] = useState(null)
   const [imageErrors, setImageErrors] = useState({})
   const [imageLoading, setImageLoading] = useState({})
@@ -502,12 +502,14 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
     <div className="project-pictures">
       <div className="pictures-header">
         <div></div>
-        <button 
-          className="upload-button"
-          onClick={() => setShowUploadForm(true)}
-        >
-          + Upload Picture
-        </button>
+        {!isDemo && (
+          <button
+            className="upload-button"
+            onClick={() => setShowUploadForm(true)}
+          >
+            + Upload Picture
+          </button>
+        )}
       </div>
 
       <div className="pictures-grid">
@@ -548,7 +550,7 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
               )}
               
               <div className="picture-overlay">
-                <button 
+                <button
                   className="view-button"
                   onClick={(e) => {
                     e.stopPropagation()
@@ -558,17 +560,19 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
                 >
                   🔍 View
                 </button>
-                <button 
-                  className="delete-button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleDeletePicture(picture.id)
-                  }}
-                  disabled={deletingPictureId === picture.id || imageErrors[picture.id]}
-                  title="Delete picture"
-                >
-                  {deletingPictureId === picture.id ? '⏳' : '×'}
-                </button>
+                {!isDemo && (
+                  <button
+                    className="delete-button"
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      handleDeletePicture(picture.id)
+                    }}
+                    disabled={deletingPictureId === picture.id || imageErrors[picture.id]}
+                    title="Delete picture"
+                  >
+                    {deletingPictureId === picture.id ? '⏳' : '×'}
+                  </button>
+                )}
               </div>
             </div>
             
@@ -582,7 +586,7 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
       </div>
 
       {/* Upload Form Modal */}
-      {showUploadForm && (
+      {showUploadForm && !isDemo && (
         <div className="upload-modal-overlay" onClick={handleCancelUpload}>
           <div className="upload-modal" onClick={(e) => e.stopPropagation()}>
             <div className="upload-modal-header">
@@ -691,20 +695,22 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
                     <span className="menu-item-icon">⬇️</span>
                     <span className="menu-item-text">Download Image</span>
                   </button>
-                  <button
-                    className="lightbox-menu-item lightbox-menu-item-delete"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleDeletePicture(selectedImage.id, true)
-                      setShowImageMenu(false)
-                    }}
-                    disabled={deletingPictureId === selectedImage.id}
-                  >
-                    <span className="menu-item-icon">🗑️</span>
-                    <span className="menu-item-text">
-                      {deletingPictureId === selectedImage.id ? 'Deleting...' : 'Delete Image'}
-                    </span>
-                  </button>
+                  {!isDemo && (
+                    <button
+                      className="lightbox-menu-item lightbox-menu-item-delete"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeletePicture(selectedImage.id, true)
+                        setShowImageMenu(false)
+                      }}
+                      disabled={deletingPictureId === selectedImage.id}
+                    >
+                      <span className="menu-item-icon">🗑️</span>
+                      <span className="menu-item-text">
+                        {deletingPictureId === selectedImage.id ? 'Deleting...' : 'Delete Image'}
+                      </span>
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -751,7 +757,7 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate }) => {
                     onContextMenu={handleImageRightClickZoom}
                     title="Click to zoom in, double-click to reset, right-click to zoom out"
                   />
-                ) : (selectedImage.url?.startsWith('http://') || selectedImage.url?.startsWith('https://')) ? (
+                ) : (selectedImage.url?.startsWith('http://') || selectedImage.url?.startsWith('https://') || selectedImage.url?.startsWith('/')) ? (
                   <img
                     src={selectedImage.url}
                     alt={selectedImage.caption}

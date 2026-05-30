@@ -7,15 +7,16 @@ import ProjectTasks from './ProjectTasks'
 import ProjectMaterials from './ProjectMaterials'
 import ProjectReferences from './ProjectReferences'
 import '../styles/ProjectDetails.css'
+import '../styles/DemoHints.css'
 
 const DEFAULT_PROJECT_IMAGE = '/draft2done-login-bg.png'
 
-const ProjectDetails = () => {
+const ProjectDetails = ({ isDemo = false, demoData = null }) => {
   const { id } = useParams()
   const navigate = useNavigate()
   const location = useLocation()
-  const [project, setProject] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const [project, setProject] = useState(isDemo ? demoData : null)
+  const [loading, setLoading] = useState(!isDemo)
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('tasks')
   const [updatingStatus, setUpdatingStatus] = useState(false)
@@ -30,7 +31,7 @@ const ProjectDetails = () => {
   const [deleting, setDeleting] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
   const [showCollaboratorsModal, setShowCollaboratorsModal] = useState(false)
-  const [collaboratorsList, setCollaboratorsList] = useState([])
+  const [collaboratorsList, setCollaboratorsList] = useState(isDemo ? (demoData?.collaborators || []) : [])
   const [pendingShareRequests, setPendingShareRequests] = useState([])
   const [shareEmailFields, setShareEmailFields] = useState([{ email: '', permission: 'view' }])
   const [shareAdding, setShareAdding] = useState(false)
@@ -62,7 +63,7 @@ const ProjectDetails = () => {
   }
 
   useEffect(() => {
-    if (id) {
+    if (!isDemo && id) {
       fetchProject()
     }
   }, [id])
@@ -79,6 +80,7 @@ const ProjectDetails = () => {
 
   // Load collaborators for this project (for share modal + task assignment)
   useEffect(() => {
+    if (isDemo || !id) return
     if (id) {
       const load = async () => {
         try {
@@ -525,6 +527,20 @@ const ProjectDetails = () => {
 
   return (
     <div className="project-details">
+      {isDemo && (
+        <div className="demo-banner">
+          <span>You're exploring a sample project.</span>
+          {currentUserEmail ? (
+            <button className="demo-banner-cta" onClick={() => navigate('/')}>
+              ← Back to my projects
+            </button>
+          ) : (
+            <button className="demo-banner-cta" onClick={() => navigate('/')}>
+              Sign up free to create your own →
+            </button>
+          )}
+        </div>
+      )}
       {error && (
         <div className="error-banner">
           <span className="error-icon">⚠️</span>
@@ -540,7 +556,15 @@ const ProjectDetails = () => {
       )}
       <div className="project-header">
         {/* More Options Menu */}
-        <div className="project-details-menu" ref={menuRef}>
+        {isDemo ? (
+          <div className="project-details-menu">
+            <button className="project-menu-button demo-menu-ghost" disabled aria-hidden="true">
+              <span className="menu-icon">⋮</span>
+            </button>
+            <div className="demo-hint demo-hint--share">Share project<br/>with your team</div>
+          </div>
+        ) : null}
+        {!isDemo && <div className="project-details-menu" ref={menuRef}>
           <button
             className="project-menu-button"
             onClick={handleMenuToggle}
@@ -568,11 +592,11 @@ const ProjectDetails = () => {
               </button>
             </div>
           )}
-        </div>
+        </div>}
         <button onClick={handleBackToProjects} className="back-button">
           ← Back to Projects
         </button>
-        
+
         {/* Project Image Section */}
         <div className="project-image-section">
           <div className="project-image-container">
@@ -591,19 +615,23 @@ const ProjectDetails = () => {
             ) : (
               <img src={DEFAULT_PROJECT_IMAGE} alt={project.title} className="project-image" />
             )}
-            <div className="project-image-overlay">
-              <label htmlFor="project-image-upload" className="image-change-button">
-                {previewImage ? 'Change Image' : 'Change Image'}
-              </label>
-            </div>
-            <input
-              type="file"
-              id="project-image-upload"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="image-upload-input"
-              style={{ display: 'none' }}
-            />
+            {!isDemo && (
+              <>
+                <div className="project-image-overlay">
+                  <label htmlFor="project-image-upload" className="image-change-button">
+                    Change Image
+                  </label>
+                </div>
+                <input
+                  type="file"
+                  id="project-image-upload"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="image-upload-input"
+                  style={{ display: 'none' }}
+                />
+              </>
+            )}
           </div>
           {previewImage && (
             <div className="image-upload-actions">
@@ -666,22 +694,24 @@ const ProjectDetails = () => {
             ) : (
               <div className="project-title-display">
                 <h1 className="project-title">{project.title}</h1>
-                <button
-                  className="title-edit-button"
-                  onClick={handleTitleEdit}
-                  title="Edit title"
-                  aria-label="Edit project title"
-                >
-                  <span className="edit-icon">✏️</span>
-                </button>
+                {!isDemo && (
+                  <button
+                    className="title-edit-button"
+                    onClick={handleTitleEdit}
+                    title="Edit title"
+                    aria-label="Edit project title"
+                  >
+                    <span className="edit-icon">✏️</span>
+                  </button>
+                )}
               </div>
             )}
           </div>
           <div className="project-meta">
             <select
               value={project.status}
-              onChange={(e) => handleStatusChange(e.target.value)}
-              disabled={updatingStatus}
+              onChange={(e) => !isDemo && handleStatusChange(e.target.value)}
+              disabled={updatingStatus || isDemo}
               className="status-select"
               style={{ backgroundColor: getStatusColor(project.status) }}
               aria-label="Project status"
@@ -733,14 +763,16 @@ const ProjectDetails = () => {
               <p className="project-description">
                 {project.description || <span className="description-placeholder">No description</span>}
               </p>
-              <button
-                className="description-edit-button"
-                onClick={handleDescriptionEdit}
-                title="Edit description"
-                aria-label="Edit project description"
-              >
-                <span className="edit-icon">✏️</span>
-              </button>
+              {!isDemo && (
+                <button
+                  className="description-edit-button"
+                  onClick={handleDescriptionEdit}
+                  title="Edit description"
+                  aria-label="Edit project description"
+                >
+                  <span className="edit-icon">✏️</span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -865,42 +897,55 @@ const ProjectDetails = () => {
       )}
 
       <div className="project-content">
-        <nav className="project-tabs">
-          <button 
-            className={`tab-button ${activeTab === 'tasks' ? 'active' : ''}`}
-            onClick={() => setActiveTab('tasks')}
-          >
-            ✅ Tasks
-          </button>
-          <button 
-            className={`tab-button ${activeTab === 'pictures' ? 'active' : ''}`}
-            onClick={() => setActiveTab('pictures')}
-          >
-            📸 Pictures
-          </button>
-          <button 
-            className={`tab-button ${activeTab === 'references' ? 'active' : ''}`}
-            onClick={() => setActiveTab('references')}
-          >
-            🔗 References
-          </button>
-          <button 
-            className={`tab-button ${activeTab === 'materials' ? 'active' : ''}`}
-            onClick={() => setActiveTab('materials')}
-          >
-            🛠️ Materials
-          </button>
-        </nav>
+        <div className="tabs-hint-wrapper">
+          <nav className="project-tabs">
+            <button
+              className={`tab-button ${activeTab === 'tasks' ? 'active' : ''}`}
+              onClick={() => setActiveTab('tasks')}
+            >
+              ✅ Tasks
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'pictures' ? 'active' : ''}`}
+              onClick={() => setActiveTab('pictures')}
+            >
+              📸 Pictures
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'references' ? 'active' : ''}`}
+              onClick={() => setActiveTab('references')}
+            >
+              🔗 References
+            </button>
+            <button
+              className={`tab-button ${activeTab === 'materials' ? 'active' : ''}`}
+              onClick={() => setActiveTab('materials')}
+            >
+              🛠️ Materials
+            </button>
+          </nav>
+          {isDemo && (
+            <div className={`demo-tab-description demo-tab-description--${activeTab}`}>
+              {{
+                tasks:      'List all your tasks, assign them to team members and track progress as you go.',
+                pictures:   'Capture your inspiration — mood boards, progress shots and design ideas all in one place.',
+                references: 'Save links to tutorials, social media posts and anything that fuels your project.',
+                materials:  'Track every material and tool you need — quantities, shopping links and a purchased checklist.',
+              }[activeTab]}
+            </div>
+          )}
+        </div>
 
         <div className="tab-content">
           {activeTab === 'tasks' && (
-            <ProjectTasks 
-              tasks={project.tasks || []} 
+            <ProjectTasks
+              tasks={project.tasks || []}
               projectId={project.id}
               onUpdate={fetchProject}
               onStatusUpdate={handleStatusChange}
               currentStatus={project.status}
               isShared={collaboratorsList.length > 0}
+              isDemo={isDemo}
               collaborators={[
                 ...(project.ownerEmail ? [{ email: project.ownerEmail, label: project.ownerEmail }] : []),
                 ...(collaboratorsList || [])
@@ -910,25 +955,28 @@ const ProjectDetails = () => {
             />
           )}
           {activeTab === 'pictures' && (
-            <ProjectPictures 
-              pictures={project.pictures || []} 
+            <ProjectPictures
+              pictures={project.pictures || []}
               projectId={project.id}
               onUpdate={fetchProject}
+              isDemo={isDemo}
             />
           )}
           {activeTab === 'references' && (
-            <ProjectReferences 
+            <ProjectReferences
               references={project.references || []}
               projectId={project.id}
               onUpdate={fetchProject}
+              isDemo={isDemo}
             />
           )}
           {activeTab === 'materials' && (
-            <ProjectMaterials 
-              materials={project.materials || []} 
+            <ProjectMaterials
+              materials={project.materials || []}
               tools={project.tools || []}
               projectId={project.id}
               onUpdate={fetchProject}
+              isDemo={isDemo}
             />
           )}
         </div>

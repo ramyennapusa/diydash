@@ -4,7 +4,7 @@ import { resolveImageUrl, isS3MediaConfigured } from '../services/s3Media'
 // Only use as img src if it's a real URL (no raw S3 keys — those go through Identity Pool)
 function isDisplayableUrl(value) {
   if (!value || typeof value !== 'string') return false
-  return /^(https?:|blob:|data:)\//.test(value.trim())
+  return /^(https?:|blob:|data:|\/[^/])/.test(value.trim())
 }
 
 /** Invisible 1×1 GIF — valid img src while Cognito+GetObject runs (avoids loading then aborting the API URL). */

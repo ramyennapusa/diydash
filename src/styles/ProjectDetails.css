@@ -6,6 +6,36 @@
   min-height: 100vh;
 }
 
+/* Demo mode banner */
+.demo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.625rem 1.5rem;
+  background: #1a1a2e;
+  color: #e8e4d7;
+  font-size: 0.9rem;
+  flex-wrap: wrap;
+  margin: -2rem -2rem 1.5rem;
+}
+
+.demo-banner-cta {
+  background: none;
+  border: 1px solid #e8e4d7;
+  color: #e8e4d7;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.demo-banner-cta:hover {
+  background: rgba(232, 228, 215, 0.15);
+}
+
 /* Loading and Error States */
 .loading-container,
 .error-container {
