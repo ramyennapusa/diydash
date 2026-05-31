@@ -37,11 +37,11 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
   })
 
   // Fetch tasks from API
-  const fetchTasks = async () => {
+  const fetchTasks = async (showLoading = true) => {
     if (!projectId) return
-    
+
     try {
-      setLoading(true)
+      if (showLoading) setLoading(true)
       setError(null)
       const response = await apiClient.getTasks(projectId)
       setTasks(response.tasks || [])
@@ -49,7 +49,7 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
       console.error('Failed to load tasks:', err)
       setError(err.message || 'Failed to load tasks')
     } finally {
-      setLoading(false)
+      if (showLoading) setLoading(false)
     }
   }
 
@@ -57,7 +57,7 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
   useEffect(() => {
     if (isDemo) return
     if (projectId) {
-      fetchTasks()
+      fetchTasks(initialTasks.length === 0)  // skip spinner if parent already supplied tasks
     } else if (initialTasks.length > 0) {
       setTasks(initialTasks)
     }
