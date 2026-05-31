@@ -125,7 +125,11 @@ const ProjectDetails = ({ isDemo = false, demoData = null }) => {
   }
 
   const handleBackToProjects = () => {
-    navigate('/')
+    if (isDemo) {
+      navigate(currentUserEmail ? '/projects' : '/demo')
+    } else {
+      navigate('/projects')
+    }
   }
 
   const handleDeleteProject = async () => {
