@@ -87,14 +87,18 @@ function ProjectCard({ project, onUpdate }) {
     })
   }
 
-  // Calculate task progress percentage
+  // Calculate task progress percentage (summary list may send taskCount instead of tasks[])
   const calculateTaskProgress = () => {
-    if (!project.tasks || !Array.isArray(project.tasks) || project.tasks.length === 0) {
-      return 0
+    if (project.tasks && Array.isArray(project.tasks) && project.tasks.length > 0) {
+      const completedTasks = project.tasks.filter(task => task.completed === true).length
+      return Math.round((completedTasks / project.tasks.length) * 100)
     }
-    const completedTasks = project.tasks.filter(task => task.completed === true).length
-    const totalTasks = project.tasks.length
-    return totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0
+    const total = project.taskCount
+    const completed = project.completedTaskCount
+    if (typeof total === 'number' && total > 0 && typeof completed === 'number') {
+      return Math.round((completed / total) * 100)
+    }
+    return 0
   }
 
   const taskProgress = calculateTaskProgress()

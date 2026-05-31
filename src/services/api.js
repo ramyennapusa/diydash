@@ -87,11 +87,12 @@ class Draft2DoneAPI {
     }
   }
 
-  // Get all projects
-  async getProjects(status = null) {
+  // Get all projects (summary view by default — smaller payload for list screens)
+  async getProjects(status = null, { view = 'summary' } = {}) {
     const params = new URLSearchParams();
     if (this.userEmail) params.set('owner', this.userEmail);
     if (status && status !== 'All') params.set('status', status);
+    if (view) params.set('view', view);
     const query = params.toString() ? `?${params.toString()}` : '';
     return this.request(`/projects${query}`, { skipUserEmail: true });
   }

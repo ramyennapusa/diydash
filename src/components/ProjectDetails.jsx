@@ -17,6 +17,7 @@ const ProjectDetails = ({ isDemo = false, demoData = null }) => {
   const location = useLocation()
   const [project, setProject] = useState(isDemo ? demoData : null)
   const [loading, setLoading] = useState(!isDemo)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('tasks')
   const [updatingStatus, setUpdatingStatus] = useState(false)
@@ -43,6 +44,8 @@ const ProjectDetails = ({ isDemo = false, demoData = null }) => {
     try {
       if (showLoading) {
         setLoading(true)
+      } else {
+        setRefreshing(true)
       }
       setError(null)
       
@@ -58,6 +61,8 @@ const ProjectDetails = ({ isDemo = false, demoData = null }) => {
     } finally {
       if (showLoading) {
         setLoading(false)
+      } else {
+        setRefreshing(false)
       }
     }
   }
@@ -126,9 +131,9 @@ const ProjectDetails = ({ isDemo = false, demoData = null }) => {
 
   const handleBackToProjects = () => {
     if (isDemo) {
-      navigate(currentUserEmail ? '/projects' : '/demo')
+      navigate(currentUserEmail ? '/' : '/demo')
     } else {
-      navigate('/projects')
+      navigate('/')
     }
   }
 
@@ -969,6 +974,7 @@ const ProjectDetails = ({ isDemo = false, demoData = null }) => {
               projectId={project.id}
               onUpdate={fetchProject}
               isDemo={isDemo}
+              isParentLoading={refreshing}
             />
           )}
           {activeTab === 'references' && (

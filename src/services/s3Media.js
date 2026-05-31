@@ -10,6 +10,10 @@ const REGION = authConfig.region;
 
 const blobUrlCache = new Map(); // key -> { url }
 
+/** Cached Cognito Identity credentials (reuse across S3 fetches). */
+let identityCredentialsCache = null;
+let identityCredentialsExpiresAt = 0;
+
 function revokeCached(key) {
   const entry = blobUrlCache.get(key);
   if (entry?.url) {
@@ -26,6 +30,12 @@ function revokeCached(key) {
  */
 async function getIdentityCredentials() {
   if (!isCognitoConfigured || !BUCKET) return null;
+
+  const now = Date.now();
+  if (identityCredentialsCache && now < identityCredentialsExpiresAt - 60_000) {
+    return identityCredentialsCache;
+  }
+
   const idToken = await auth.getIdToken();
   if (!idToken) return null;
   const loginKey = getCognitoIdpLoginKey();
@@ -51,11 +61,25 @@ async function getIdentityCredentials() {
   );
   const creds = credRes.Credentials;
   if (!creds?.AccessKeyId || !creds.SecretKey || !creds.SessionToken) return null;
-  return {
+
+  identityCredentialsCache = {
     accessKeyId: creds.AccessKeyId,
     secretAccessKey: creds.SecretKey,
     sessionToken: creds.SessionToken,
   };
+  identityCredentialsExpiresAt = creds.Expiration
+    ? new Date(creds.Expiration).getTime()
+    : now + 50 * 60 * 1000;
+
+  return identityCredentialsCache;
+}
+
+/** Pre-fetch Identity Pool credentials after login (optional warm-up). */
+export async function warmS3MediaCredentials() {
+  if (!isS3MediaConfigured) return;
+  try {
+    await getIdentityCredentials();
+  } catch (_) {}
 }
 
 /**

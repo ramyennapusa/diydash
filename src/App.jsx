@@ -13,6 +13,7 @@ import Account from './components/Account'
 import { BIRTHDAY_PROJECT, PATIO_PROJECT } from './data/demoProject'
 import DemoLanding from './components/DemoLanding'
 import ErrorBoundary from './components/ErrorBoundary'
+import { warmS3MediaCredentials } from './services/s3Media'
 import PrivacyPolicy from './components/PrivacyPolicy'
 import Support from './components/Support'
 
@@ -50,6 +51,7 @@ function App() {
         setUser(userData)
         apiClient.setUser(userData)
         localStorage.setItem(STORAGE_KEY, JSON.stringify(userData))
+        warmS3MediaCredentials()
       } else {
         setUser(null)
         apiClient.setUser(null)
@@ -69,6 +71,7 @@ function App() {
     setUser(userData)
     apiClient.setUser(userData)
     localStorage.setItem(STORAGE_KEY, JSON.stringify(userData))
+    warmS3MediaCredentials()
   }, [])
 
   const handleLogout = useCallback(async () => {

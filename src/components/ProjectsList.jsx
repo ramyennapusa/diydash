@@ -7,6 +7,8 @@ import './ProjectsList.css'
 
 const DEFAULT_PROJECT_IMAGE = '/draft2done-login-bg.png'
 const PROJECTS_CACHE_KEY = 'draft2done_projects_cache_v1'
+const PROJECTS_LOCAL_CACHE_KEY = 'draft2done_projects_cache_local_v1'
+const PROJECTS_CACHE_TTL_MS = 24 * 60 * 60 * 1000
 
 function ProjectsList() {
   const navigate = useNavigate()
@@ -178,6 +180,14 @@ function ProjectsList() {
             cachedAt: Date.now()
           })
         )
+        localStorage.setItem(
+          PROJECTS_LOCAL_CACHE_KEY,
+          JSON.stringify({
+            projects: nextProjects,
+            pendingCollaborationRequests: nextPending,
+            cachedAt: Date.now()
+          })
+        )
       } catch (_) {
         // Ignore cache write errors (private mode/quota/etc.)
       }
@@ -194,15 +204,26 @@ function ProjectsList() {
   // Load projects from API - load all projects, filter client-side
   useEffect(() => {
     let hasCache = false
+    const applyCache = (cached) => {
+      if (Array.isArray(cached.projects)) {
+        setProjects(cached.projects)
+        setPendingCollaborationRequests(cached.pendingCollaborationRequests || [])
+        setIsLoading(false)
+        hasCache = true
+      }
+    }
     try {
       const cachedRaw = sessionStorage.getItem(PROJECTS_CACHE_KEY)
       if (cachedRaw) {
-        const cached = JSON.parse(cachedRaw)
-        if (Array.isArray(cached.projects)) {
-          setProjects(cached.projects)
-          setPendingCollaborationRequests(cached.pendingCollaborationRequests || [])
-          setIsLoading(false)
-          hasCache = true
+        applyCache(JSON.parse(cachedRaw))
+      } else {
+        const localRaw = localStorage.getItem(PROJECTS_LOCAL_CACHE_KEY)
+        if (localRaw) {
+          const localCached = JSON.parse(localRaw)
+          const age = Date.now() - (localCached.cachedAt || 0)
+          if (age < PROJECTS_CACHE_TTL_MS) {
+            applyCache(localCached)
+          }
         }
       }
     } catch (_) {

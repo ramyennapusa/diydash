@@ -5,7 +5,7 @@ import apiClient from '../services/api'
 
 const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusUpdate, currentStatus, isShared = false, collaborators = [], isDemo = false }) => {
   const [tasks, setTasks] = useState(initialTasks)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(() => !isDemo && !!projectId && initialTasks.length === 0)
   const [error, setError] = useState(null)
   const [taskStates, setTaskStates] = useState({})
   const [creating, setCreating] = useState(false)
@@ -53,15 +53,27 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
     }
   }
 
-  // Fetch tasks on mount and when projectId changes
+  // Fetch tasks on mount when parent did not supply them (get-project now includes tasks).
   useEffect(() => {
     if (isDemo) return
-    if (projectId) {
-      fetchTasks(initialTasks.length === 0)  // skip spinner if parent already supplied tasks
-    } else if (initialTasks.length > 0) {
-      setTasks(initialTasks)
+    if (!projectId) {
+      if (initialTasks.length > 0) setTasks(initialTasks)
+      return
     }
+    if (initialTasks.length > 0) {
+      setTasks(initialTasks)
+      setLoading(false)
+      return
+    }
+    fetchTasks(true)
   }, [projectId])
+
+  // Keep in sync when parent refreshes project (e.g. after mutations).
+  useEffect(() => {
+    if (isDemo || initialTasks.length === 0) return
+    setTasks(initialTasks)
+    setLoading(false)
+  }, [initialTasks, isDemo])
 
   // Initialize task states from tasks
   useEffect(() => {

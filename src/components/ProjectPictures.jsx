@@ -4,7 +4,7 @@ import apiClient from '../services/api'
 import ResolvedImage from './ResolvedImage'
 import { getS3ObjectUrl, isS3MediaConfigured } from '../services/s3Media'
 
-const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false }) => {
+const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false, isParentLoading = false }) => {
   const [selectedImage, setSelectedImage] = useState(null)
   const [imageErrors, setImageErrors] = useState({})
   const [imageLoading, setImageLoading] = useState({})
@@ -476,6 +476,17 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false })
   }
 
   const hasPictures = pictures && pictures.length > 0
+
+  if (isParentLoading && !hasPictures && !showUploadForm) {
+    return (
+      <div className="pictures-empty">
+        <div className="empty-state">
+          <div className="loading-spinner"></div>
+          <p>Loading pictures…</p>
+        </div>
+      </div>
+    )
+  }
 
   if (!hasPictures && !showUploadForm) {
     return (
