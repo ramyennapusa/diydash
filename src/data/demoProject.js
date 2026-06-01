@@ -19,7 +19,6 @@ export const BIRTHDAY_PROJECT = {
     { id: 'm4', name: 'Confetti & table scatter', quantity: '2 bags', size: '', purchased: false, shoppingLink: '', notes: '' },
     { id: 'm5', name: 'Number 1 candle', quantity: '2', size: '', purchased: false, shoppingLink: 'https://www.amazon.com/s?k=number+1+first+birthday+candle', notes: '' },
   ],
-  tools: [],
   references: [
     { id: 'r1', title: 'Birthday Party Game Ideas', url: 'https://www.wikihow.com/Birthday-Games', description: 'Fun game ideas to keep little ones entertained', sourceType: 'website', addedDate: '2025-01-15T10:00:00Z' },
     { id: 'r2', title: 'DIY Balloon Arch Tutorial', url: 'https://www.youtube.com/results?search_query=diy+balloon+arch+tutorial', description: 'Easy balloon garland ideas for beginners', sourceType: 'youtube', addedDate: '2025-01-15T10:00:00Z' },
@@ -72,7 +71,6 @@ export const PATIO_PROJECT = {
     { id: 'pm4', name: 'Built-in outdoor grill (stainless)', quantity: '1', size: '30"', purchased: false, shoppingLink: 'https://www.amazon.com/s?k=built+in+outdoor+grill+stainless+steel', notes: '' },
     { id: 'pm5', name: 'Teak outdoor furniture set', quantity: '1 set', size: '', purchased: false, shoppingLink: 'https://www.amazon.com/s?k=teak+outdoor+furniture+set+sofa+chairs', notes: '' },
   ],
-  tools: [],
   references: [
     { id: 'pr1', title: 'Outdoor Kitchen Build Tutorial', url: 'https://www.youtube.com/results?search_query=outdoor+kitchen+build+tutorial', description: 'Step-by-step guide to building an outdoor kitchen', sourceType: 'youtube', addedDate: '2025-03-10T09:00:00Z' },
     { id: 'pr2', title: 'Covered Patio & Pergola Ideas', url: 'https://www.pinterest.com/search/pins/?q=covered+patio+pergola+string+lights', description: 'Inspiration for covered outdoor living spaces', sourceType: 'pinterest', addedDate: '2025-03-10T09:00:00Z' },

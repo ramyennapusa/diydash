@@ -1,59 +1,42 @@
-import { render, screen, fireEvent } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import ProjectMaterials from './ProjectMaterials'
 
-const mockMaterials = [
+const mockSupplies = [
   {
     id: '1',
     name: 'Wood Plank',
     quantity: '5 pieces',
     size: '2x4 pine lumber',
-    estimatedCost: 25.5,
     shoppingLink: 'https://homedepot.example',
     category: 'Wood',
     essential: true,
+    purchased: false,
   },
   {
     id: '2',
-    name: 'Screws',
-    quantity: '1 box',
-    size: '2.5 inch wood screws',
-    estimatedCost: 8.99,
-    shoppingLink: '',
-    category: 'Hardware',
-    essential: false,
-  },
-]
-
-const mockTools = [
-  {
-    id: '1',
     name: 'Drill',
-    description: 'Cordless drill for making holes',
-    essential: true,
-    alternatives: ['Manual drill', 'Screwdriver'],
-    category: 'Power Tools',
+    quantity: '',
+    size: '',
+    shoppingLink: '',
+    category: 'General',
+    essential: false,
+    purchased: true,
   },
 ]
 
 describe('ProjectMaterials Component', () => {
-  test('renders empty state when no materials or tools and no project', () => {
-    render(<ProjectMaterials materials={[]} tools={[]} />)
-    expect(screen.getByText('No Materials or Tools Listed')).toBeInTheDocument()
+  test('renders empty state when no supplies and no project', () => {
+    render(<ProjectMaterials materials={[]} />)
+    expect(screen.getByText('No supplies listed')).toBeInTheDocument()
     expect(
-      screen.getByText('Material and tool requirements will appear here when available.')
+      screen.getByText('Items you need for this project will appear here.')
     ).toBeInTheDocument()
   })
 
-  test('renders material names on the materials tab', () => {
-    render(<ProjectMaterials materials={mockMaterials} tools={mockTools} />)
-    expect(screen.getByText('Materials & Tools')).toBeInTheDocument()
+  test('renders supplies list from materials prop', () => {
+    render(<ProjectMaterials materials={mockSupplies} />)
+    expect(screen.getByText('Supplies')).toBeInTheDocument()
     expect(screen.getByText('Wood Plank')).toBeInTheDocument()
-    expect(screen.getByText('Screws')).toBeInTheDocument()
-  })
-
-  test('switches to tools tab', () => {
-    render(<ProjectMaterials materials={mockMaterials} tools={mockTools} />)
-    fireEvent.click(screen.getByText(/Tools \(1\)/))
     expect(screen.getByText('Drill')).toBeInTheDocument()
   })
 })

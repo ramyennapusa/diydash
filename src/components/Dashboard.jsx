@@ -43,7 +43,7 @@ function Dashboard() {
           
           <div className="feature-card">
             <h3>🛠️ Tool & Material Lists</h3>
-            <p>Organize your tools and materials for each project</p>
+            <p>Organize supplies for each project</p>
             <span className="feature-link coming-soon">
               Coming Soon
             </span>

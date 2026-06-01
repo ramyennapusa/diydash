@@ -38,7 +38,7 @@ export default function PrivacyPolicy() {
             </li>
             <li>
               <strong>Project Content:</strong> Text, titles, descriptions, and status
-              information you enter for your projects, tasks, materials, tools, and reference links.
+              information you enter for your projects, tasks, supplies, and reference links.
             </li>
             <li>
               <strong>Media Files:</strong> Photos and videos you upload to document your projects.

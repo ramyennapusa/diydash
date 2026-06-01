@@ -38,6 +38,6 @@ describe('Dashboard Component', () => {
     renderWithRouter(<Dashboard />)
     expect(screen.getByText('Keep track of your ongoing DIY projects and their progress')).toBeInTheDocument()
     expect(screen.getByText('Break down projects into manageable tasks and check them off')).toBeInTheDocument()
-    expect(screen.getByText('Organize your tools and materials for each project')).toBeInTheDocument()
+    expect(screen.getByText('Organize supplies for each project')).toBeInTheDocument()
   })
 })

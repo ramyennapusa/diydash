@@ -932,10 +932,10 @@ const ProjectDetails = ({ isDemo = false, demoData = null }) => {
               🔗 References
             </button>
             <button
-              className={`tab-button ${activeTab === 'materials' ? 'active' : ''}`}
-              onClick={() => setActiveTab('materials')}
+              className={`tab-button ${activeTab === 'supplies' ? 'active' : ''}`}
+              onClick={() => setActiveTab('supplies')}
             >
-              🛠️ Materials
+              🛠️ Supplies
             </button>
           </nav>
           {isDemo && (
@@ -944,7 +944,7 @@ const ProjectDetails = ({ isDemo = false, demoData = null }) => {
                 tasks:      'List all your tasks, assign them to team members and track progress as you go.',
                 pictures:   'Capture your inspiration — mood boards, progress shots and design ideas all in one place.',
                 references: 'Save links to tutorials, social media posts and anything that fuels your project.',
-                materials:  'Track every material and tool you need — quantities, shopping links and a purchased checklist.',
+                supplies:   'Track everything you need — quantities, shopping links and a purchased checklist.',
               }[activeTab]}
             </div>
           )}
@@ -985,10 +985,9 @@ const ProjectDetails = ({ isDemo = false, demoData = null }) => {
               isDemo={isDemo}
             />
           )}
-          {activeTab === 'materials' && (
+          {activeTab === 'supplies' && (
             <ProjectMaterials
               materials={project.materials || []}
-              tools={project.tools || []}
               projectId={project.id}
               onUpdate={fetchProject}
               isDemo={isDemo}

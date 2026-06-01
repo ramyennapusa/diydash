@@ -115,7 +115,6 @@ class Draft2DoneAPI {
       tasks: [],
       videos: [],
       materials: [],
-      tools: [],
       references: []
     };
 

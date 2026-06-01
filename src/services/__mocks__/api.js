@@ -36,7 +36,6 @@ const defaultProject = {
   status: 'Planning',
   image: 'test.jpg',
   materials: [],
-  tools: [],
   pictures: [],
   videos: [],
   tasks: [],

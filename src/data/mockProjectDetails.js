@@ -192,48 +192,6 @@ const mockProjectDetails = {
         category: "Consumables",
         essential: true
       }
-    ],
-    tools: [
-      {
-        id: "tool1-1",
-        name: "Table Saw",
-        description: "For cutting wood to precise dimensions",
-        essential: true,
-        alternatives: ["Circular saw with guide", "Hand saw"],
-        category: "Power Tools"
-      },
-      {
-        id: "tool1-2",
-        name: "Mortise Chisel Set",
-        description: "For cutting mortise and tenon joints",
-        essential: true,
-        alternatives: ["Regular chisels", "Router with mortise attachment"],
-        category: "Hand Tools"
-      },
-      {
-        id: "tool1-3",
-        name: "Random Orbital Sander",
-        description: "For smooth surface preparation",
-        essential: false,
-        alternatives: ["Sanding block", "Palm sander"],
-        category: "Power Tools"
-      },
-      {
-        id: "tool1-4",
-        name: "Clamps",
-        description: "Various sizes for glue-ups and assembly",
-        essential: true,
-        alternatives: ["Rope and wedges", "Heavy objects for weight"],
-        category: "Clamping"
-      },
-      {
-        id: "tool1-5",
-        name: "Drill/Driver",
-        description: "For pilot holes and assembly screws",
-        essential: true,
-        alternatives: ["Hand drill", "Screwdriver"],
-        category: "Power Tools"
-      }
     ]
   },
   "2": {
@@ -344,16 +302,6 @@ const mockProjectDetails = {
         category: "Electronics",
         essential: true
       }
-    ],
-    tools: [
-      {
-        id: "tool2-1",
-        name: "Soldering Iron",
-        description: "For making permanent electrical connections",
-        essential: true,
-        alternatives: ["Breadboard connections", "Wire nuts"],
-        category: "Electronics"
-      }
     ]
   },
   "3": {
@@ -463,24 +411,6 @@ const mockProjectDetails = {
         supplier: "Local Garden Center",
         category: "Soil",
         essential: true
-      }
-    ],
-    tools: [
-      {
-        id: "tool3-1",
-        name: "Circular Saw",
-        description: "For cutting cedar boards to length",
-        essential: true,
-        alternatives: ["Hand saw", "Miter saw"],
-        category: "Power Tools"
-      },
-      {
-        id: "tool3-2",
-        name: "Drill",
-        description: "For assembling the frame with screws",
-        essential: true,
-        alternatives: ["Screwdriver", "Impact driver"],
-        category: "Power Tools"
       }
     ]
   }
