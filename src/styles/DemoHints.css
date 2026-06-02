@@ -105,8 +105,8 @@
 .demo-tab-description--tasks      { left: 12.5%; transform: translateX(-50%); }
 .demo-tab-description--pictures   { left: 37.5%; transform: translateX(-50%); }
 .demo-tab-description--references { left: 62.5%; transform: translateX(-50%); }
-.demo-tab-description--materials  { left: auto; right: 0; transform: none; }
-.demo-tab-description--materials::before { left: auto; right: 24px; transform: none; }
+.demo-tab-description--supplies  { left: auto; right: 0; transform: none; }
+.demo-tab-description--supplies::before { left: auto; right: 24px; transform: none; }
 
 /* Ghost ⋮ button in demo mode */
 .demo-menu-ghost {

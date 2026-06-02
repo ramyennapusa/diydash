@@ -756,42 +756,17 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false, i
             
             <div className="lightbox-image-wrapper">
               <div className="lightbox-image-container">
-                {selectedImage.key ? (
-                  <ResolvedImage
-                    s3Key={selectedImage.key}
-                    fallbackUrl={null}
-                    alt={selectedImage.caption}
-                    className="lightbox-image"
-                    style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s ease' }}
-                    onClick={handleImageClickZoom}
-                    onDoubleClick={handleImageDoubleClickZoom}
-                    onContextMenu={handleImageRightClickZoom}
-                    title="Click to zoom in, double-click to reset, right-click to zoom out"
-                  />
-                ) : (selectedImage.url?.startsWith('http://') || selectedImage.url?.startsWith('https://') || selectedImage.url?.startsWith('/')) ? (
-                  <img
-                    src={selectedImage.url}
-                    alt={selectedImage.caption}
-                    className="lightbox-image"
-                    style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s ease' }}
-                    onClick={handleImageClickZoom}
-                    onDoubleClick={handleImageDoubleClickZoom}
-                    onContextMenu={handleImageRightClickZoom}
-                    title="Click to zoom in, double-click to reset, right-click to zoom out"
-                  />
-                ) : (
-                  <ResolvedImage
-                    s3Key={selectedImage.url}
-                    fallbackUrl={null}
-                    alt={selectedImage.caption}
-                    className="lightbox-image"
-                    style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s ease' }}
-                    onClick={handleImageClickZoom}
-                    onDoubleClick={handleImageDoubleClickZoom}
-                    onContextMenu={handleImageRightClickZoom}
-                    title="Click to zoom in, double-click to reset, right-click to zoom out"
-                  />
-                )}
+                <ResolvedImage
+                  s3Key={selectedImage.key}
+                  fallbackUrl={selectedImage.url}
+                  alt={selectedImage.caption || 'Project picture'}
+                  className="lightbox-image"
+                  style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s ease' }}
+                  onClick={handleImageClickZoom}
+                  onDoubleClick={handleImageDoubleClickZoom}
+                  onContextMenu={handleImageRightClickZoom}
+                  title="Click to zoom in, double-click to reset, right-click to zoom out"
+                />
               </div>
             </div>
             

@@ -35,10 +35,11 @@ export default function ResolvedImage({
   }, [s3Key, fallbackUrl])
 
   const [loading, setLoading] = useState(!!keyToResolve)
+  const trimmedFallback = fallbackUrl && String(fallbackUrl).trim()
 
   /** When Identity Pool is off (tests/local), non-http fallbacks are plain img paths, not S3 keys. */
   const useLiteralFallback =
-    Boolean(fallbackUrl?.trim()) &&
+    Boolean(trimmedFallback) &&
     ((!keyToResolve && !isS3MediaConfigured) || isDisplayableUrl(fallbackUrl))
 
   useEffect(() => {
@@ -51,7 +52,9 @@ export default function ResolvedImage({
     if (keyToResolve) {
       setLoading(true)
       setResolvedUrl(null)
-      resolveImageUrl(keyToResolve, null)
+      const cognitoFallback =
+        trimmedFallback && isDisplayableUrl(trimmedFallback) ? trimmedFallback : null
+      resolveImageUrl(keyToResolve, cognitoFallback)
         .then((url) => {
           setResolvedUrl(url || null)
           setLoading(false)
@@ -72,9 +75,8 @@ export default function ResolvedImage({
       setResolvedUrl(null)
     }
     setLoading(false)
-  }, [s3Key, fallbackUrl, keyToResolve])
+  }, [s3Key, fallbackUrl, keyToResolve, trimmedFallback])
 
-  const trimmedFallback = fallbackUrl && String(fallbackUrl).trim()
   const src =
     loading && keyToResolve
       ? PLACEHOLDER_SRC
