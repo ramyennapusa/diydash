@@ -30,6 +30,7 @@ export const BIRTHDAY_PROJECT = {
     { id: 'p3', url: '/demo/charlie-berry-cake.png', key: null, caption: '', type: 'design', order: 2 },
     { id: 'p4', url: '/demo/charlie-invitation.png', key: null, caption: '', type: 'progress', order: 3 },
     { id: 'p5', url: '/demo/charlie-party-setup.png', key: null, caption: '', type: 'progress', order: 4 },
+    { id: 'p6', url: '/demo/charlie-decor.png', key: null, caption: '', type: 'design', order: 5 },
   ],
   role: 'owner',
   ownerEmail: 'demo@draft2done.com',
