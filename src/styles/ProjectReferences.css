@@ -598,3 +598,137 @@
   }
 }
 
+
+/* Multi-select */
+.items-select-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.5rem;
+}
+
+.select-items-link {
+  background: none;
+  border: none;
+  color: #6b7280;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.25rem 0;
+  transition: color 0.2s ease;
+}
+
+.select-items-link:hover {
+  color: #b18458;
+}
+
+.items-selection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: #fff7ed;
+  border: 1px solid #f59e0b;
+  border-radius: 0.5rem;
+  padding: 0.625rem 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.items-selection-count {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #92400e;
+}
+
+.items-selection-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.selection-bar-btn {
+  padding: 0.4rem 0.875rem;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.selection-bar-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.selection-bar-btn--secondary {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.selection-bar-btn--secondary:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+.selection-bar-btn--danger {
+  background: #dc2626;
+  color: white;
+}
+
+.selection-bar-btn--danger:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.selection-bar-btn--cancel {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+}
+
+.selection-bar-btn--cancel:hover:not(:disabled) {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.reference-card--selected {
+  outline: 2.5px solid #b18458;
+  outline-offset: 2px;
+  background: #fffbf5;
+}
+
+.item-select-checkbox {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.item-select-checkbox--checked {
+  background: #b18458;
+  border-color: #b18458;
+}
+
+.item-select-check {
+  color: white;
+  font-size: 0.75rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+@media (prefers-color-scheme: dark) {
+  .select-items-link { color: #9ca3af; }
+  .select-items-link:hover { color: #d4a96a; }
+  .items-selection-bar { background: rgba(180, 83, 9, 0.15); border-color: #92400e; }
+  .items-selection-count { color: #fcd34d; }
+  .selection-bar-btn--secondary { background: #4b5563; color: #f3f4f6; }
+  .selection-bar-btn--secondary:hover:not(:disabled) { background: #6b7280; }
+  .selection-bar-btn--cancel { color: #9ca3af; border-color: #6b7280; }
+  .selection-bar-btn--cancel:hover:not(:disabled) { background: #4b5563; color: #f3f4f6; }
+  .reference-card--selected { background: rgba(177, 132, 88, 0.1); }
+  .item-select-checkbox { background: #374151; border-color: #6b7280; }
+}

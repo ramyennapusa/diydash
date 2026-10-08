@@ -28,6 +28,9 @@ const ProjectMaterials = ({ materials = [], projectId, onUpdate, isDemo = false 
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [quickAddInput, setQuickAddInput] = useState('')
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const [selectedSupplyIds, setSelectedSupplyIds] = useState(new Set())
+  const [deletingSelected, setDeletingSelected] = useState(false)
   const [formData, setFormData] = useState({
     name: '',
     quantity: '',
@@ -173,6 +176,50 @@ const ProjectMaterials = ({ materials = [], projectId, onUpdate, isDemo = false 
     }
   }
 
+  const handleEnterSelectionMode = () => {
+    setIsSelectionMode(true)
+    setSelectedSupplyIds(new Set())
+  }
+
+  const handleExitSelectionMode = () => {
+    setIsSelectionMode(false)
+    setSelectedSupplyIds(new Set())
+  }
+
+  const handleToggleSelectSupply = (supplyId) => {
+    setSelectedSupplyIds(prev => {
+      const next = new Set(prev)
+      if (next.has(supplyId)) next.delete(supplyId)
+      else next.add(supplyId)
+      return next
+    })
+  }
+
+  const handleSelectAllSupplies = () => {
+    if (selectedSupplyIds.size === localSupplies.length) {
+      setSelectedSupplyIds(new Set())
+    } else {
+      setSelectedSupplyIds(new Set(localSupplies.map(s => s.id)))
+    }
+  }
+
+  const handleDeleteSelected = async () => {
+    if (selectedSupplyIds.size === 0) return
+    const count = selectedSupplyIds.size
+    if (!window.confirm(`Delete ${count} selected item${count !== 1 ? 's' : ''}? This cannot be undone.`)) return
+    setDeletingSelected(true)
+    try {
+      const updated = localSupplies.filter(s => !selectedSupplyIds.has(s.id))
+      await persistSupplies(updated)
+      handleExitSelectionMode()
+    } catch (err) {
+      console.error('Failed to delete supplies:', err)
+      alert(err.message || 'Failed to delete items. Please try again.')
+    } finally {
+      setDeletingSelected(false)
+    }
+  }
+
   if (localSupplies.length === 0 && !projectId) {
     return (
       <div className="materials-empty">
@@ -207,11 +254,44 @@ const ProjectMaterials = ({ materials = [], projectId, onUpdate, isDemo = false 
         </div>
       )}
 
+      {projectId && !isDemo && localSupplies.length > 0 && !isSelectionMode && (
+        <div className="items-select-row">
+          <button className="select-items-link" onClick={handleEnterSelectionMode}>Select</button>
+        </div>
+      )}
+      {isSelectionMode && (
+        <div className="items-selection-bar">
+          <span className="items-selection-count">{selectedSupplyIds.size} selected</span>
+          <div className="items-selection-actions">
+            <button className="selection-bar-btn selection-bar-btn--secondary" onClick={handleSelectAllSupplies}>
+              {selectedSupplyIds.size === localSupplies.length ? 'Deselect All' : 'Select All'}
+            </button>
+            <button
+              className="selection-bar-btn selection-bar-btn--danger"
+              onClick={handleDeleteSelected}
+              disabled={selectedSupplyIds.size === 0 || deletingSelected}
+            >
+              {deletingSelected ? 'Deleting…' : `Delete (${selectedSupplyIds.size})`}
+            </button>
+            <button
+              className="selection-bar-btn selection-bar-btn--cancel"
+              onClick={handleExitSelectionMode}
+              disabled={deletingSelected}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <SuppliesList
         supplies={localSupplies}
-        onToggle={isDemo || !projectId ? null : handleTogglePurchased}
-        onEdit={isDemo || !projectId ? null : handleEdit}
-        onDelete={isDemo || !projectId ? null : handleDelete}
+        onToggle={isDemo || !projectId || isSelectionMode ? null : handleTogglePurchased}
+        onEdit={isDemo || !projectId || isSelectionMode ? null : handleEdit}
+        onDelete={isDemo || !projectId || isSelectionMode ? null : handleDelete}
+        isSelectionMode={isSelectionMode}
+        selectedIds={selectedSupplyIds}
+        onSelect={handleToggleSelectSupply}
       />
 
       {showAddForm && projectId && !isDemo && (
@@ -301,7 +381,7 @@ const ProjectMaterials = ({ materials = [], projectId, onUpdate, isDemo = false 
   )
 }
 
-const SuppliesList = ({ supplies, onToggle, onEdit, onDelete }) => {
+const SuppliesList = ({ supplies, onToggle, onEdit, onDelete, isSelectionMode, selectedIds, onSelect }) => {
   if (supplies.length === 0) {
     return (
       <div className="empty-filtered">
@@ -312,28 +392,40 @@ const SuppliesList = ({ supplies, onToggle, onEdit, onDelete }) => {
 
   return (
     <div className="materials-list-simple">
-      {supplies.map((item) => (
+      {supplies.map((item) => {
+        const isSelected = isSelectionMode && selectedIds?.has(item.id)
+        return (
         <div
           key={item.id}
-          className={`material-item-simple ${item.purchased ? 'checked' : ''}`}
+          className={`material-item-simple ${item.purchased && !isSelectionMode ? 'checked' : ''}${isSelected ? ' material-item-selected' : ''}`}
+          onClick={isSelectionMode ? () => onSelect(item.id) : undefined}
+          style={isSelectionMode ? { cursor: 'pointer' } : undefined}
         >
           <div className="item-checkbox-simple">
-            <input
-              type="checkbox"
-              id={`supply-${item.id}`}
-              checked={!!item.purchased}
-              onChange={onToggle ? () => onToggle(item.id) : undefined}
-              readOnly={!onToggle}
-            />
-            <label htmlFor={`supply-${item.id}`} className="checkbox-label-simple">
-              <span className="checkmark-simple">✓</span>
-            </label>
+            {isSelectionMode ? (
+              <div className={`item-select-checkbox${isSelected ? ' item-select-checkbox--checked' : ''}`}>
+                {isSelected && <span className="item-select-check">✓</span>}
+              </div>
+            ) : (
+              <>
+                <input
+                  type="checkbox"
+                  id={`supply-${item.id}`}
+                  checked={!!item.purchased}
+                  onChange={onToggle ? () => onToggle(item.id) : undefined}
+                  readOnly={!onToggle}
+                />
+                <label htmlFor={`supply-${item.id}`} className="checkbox-label-simple">
+                  <span className="checkmark-simple">✓</span>
+                </label>
+              </>
+            )}
           </div>
 
           <div className="item-content-simple">
             <div className="item-header-simple">
               <h6 className="item-name-simple">{item.name}</h6>
-              {(onEdit || onDelete) && (
+              {!isSelectionMode && (onEdit || onDelete) && (
                 <div className="item-actions-simple">
                   {onEdit && (
                     <button
@@ -396,7 +488,8 @@ const SuppliesList = ({ supplies, onToggle, onEdit, onDelete }) => {
             </div>
           </div>
         </div>
-      ))}
+        )
+      })}
     </div>
   )
 }

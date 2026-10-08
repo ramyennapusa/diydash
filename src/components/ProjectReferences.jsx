@@ -14,6 +14,9 @@ const ProjectReferences = ({ references = [], projectId, onUpdate, isDemo = fals
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const [selectedRefIds, setSelectedRefIds] = useState(new Set())
+  const [deletingSelected, setDeletingSelected] = useState(false)
 
   const sourceTypes = [
     { value: 'website', label: 'Website', icon: '🌐' },
@@ -137,6 +140,51 @@ const ProjectReferences = ({ references = [], projectId, onUpdate, isDemo = fals
     } catch (err) {
       console.error('Failed to delete reference:', err)
       alert('Failed to delete reference. Please try again.')
+    }
+  }
+
+  const handleEnterSelectionMode = () => {
+    setIsSelectionMode(true)
+    setSelectedRefIds(new Set())
+  }
+
+  const handleExitSelectionMode = () => {
+    setIsSelectionMode(false)
+    setSelectedRefIds(new Set())
+  }
+
+  const handleToggleSelectRef = (refId) => {
+    setSelectedRefIds(prev => {
+      const next = new Set(prev)
+      if (next.has(refId)) next.delete(refId)
+      else next.add(refId)
+      return next
+    })
+  }
+
+  const handleSelectAllRefs = () => {
+    if (selectedRefIds.size === filteredReferences.length) {
+      setSelectedRefIds(new Set())
+    } else {
+      setSelectedRefIds(new Set(filteredReferences.map(r => r.id)))
+    }
+  }
+
+  const handleDeleteSelected = async () => {
+    if (selectedRefIds.size === 0) return
+    const count = selectedRefIds.size
+    if (!window.confirm(`Delete ${count} selected reference${count !== 1 ? 's' : ''}? This cannot be undone.`)) return
+    setDeletingSelected(true)
+    try {
+      const updatedReferences = references.filter(r => !selectedRefIds.has(r.id))
+      await apiClient.updateProject(projectId, { references: updatedReferences })
+      handleExitSelectionMode()
+      if (onUpdate) onUpdate()
+    } catch (err) {
+      console.error('Failed to delete references:', err)
+      alert(err.message || 'Failed to delete references. Please try again.')
+    } finally {
+      setDeletingSelected(false)
     }
   }
 
@@ -318,6 +366,37 @@ const ProjectReferences = ({ references = [], projectId, onUpdate, isDemo = fals
         </div>
       )}
 
+      {/* Select link + selection bar */}
+      {!isDemo && references.length > 0 && !isSelectionMode && (
+        <div className="items-select-row">
+          <button className="select-items-link" onClick={handleEnterSelectionMode}>Select</button>
+        </div>
+      )}
+      {isSelectionMode && (
+        <div className="items-selection-bar">
+          <span className="items-selection-count">{selectedRefIds.size} selected</span>
+          <div className="items-selection-actions">
+            <button className="selection-bar-btn selection-bar-btn--secondary" onClick={handleSelectAllRefs}>
+              {selectedRefIds.size === filteredReferences.length ? 'Deselect All' : 'Select All'}
+            </button>
+            <button
+              className="selection-bar-btn selection-bar-btn--danger"
+              onClick={handleDeleteSelected}
+              disabled={selectedRefIds.size === 0 || deletingSelected}
+            >
+              {deletingSelected ? 'Deleting…' : `Delete (${selectedRefIds.size})`}
+            </button>
+            <button
+              className="selection-bar-btn selection-bar-btn--cancel"
+              onClick={handleExitSelectionMode}
+              disabled={deletingSelected}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* References List */}
       <div className="references-list">
         {filteredReferences.length === 0 ? (
@@ -325,24 +404,31 @@ const ProjectReferences = ({ references = [], projectId, onUpdate, isDemo = fals
             <p>No references match the current filter.</p>
           </div>
         ) : (
-          filteredReferences.map((reference) => (
-            <div key={reference.id} className="reference-card">
+          filteredReferences.map((reference) => {
+            const isSelected = selectedRefIds.has(reference.id)
+            return (
+            <div
+              key={reference.id}
+              className={`reference-card${isSelected ? ' reference-card--selected' : ''}`}
+              onClick={isSelectionMode ? () => handleToggleSelectRef(reference.id) : undefined}
+              style={isSelectionMode ? { cursor: 'pointer' } : undefined}
+            >
               <div className="reference-header">
                 <div className="reference-source">
-                  <span 
+                  <span
                     className="source-icon"
                     style={{ color: getSourceColor(reference.sourceType || 'other') }}
                   >
                     {getSourceIcon(reference.sourceType || 'other')}
                   </span>
-                  <span 
+                  <span
                     className="source-label"
                     style={{ color: getSourceColor(reference.sourceType || 'other') }}
                   >
                     {getSourceLabel(reference.sourceType || 'other')}
                   </span>
                 </div>
-                {!isDemo && (
+                {!isDemo && !isSelectionMode && (
                   <div className="reference-actions">
                     <button
                       className="edit-button"
@@ -358,6 +444,11 @@ const ProjectReferences = ({ references = [], projectId, onUpdate, isDemo = fals
                     >
                       🗑️
                     </button>
+                  </div>
+                )}
+                {isSelectionMode && (
+                  <div className={`item-select-checkbox${isSelected ? ' item-select-checkbox--checked' : ''}`}>
+                    {isSelected && <span className="item-select-check">✓</span>}
                   </div>
                 )}
               </div>
@@ -384,7 +475,8 @@ const ProjectReferences = ({ references = [], projectId, onUpdate, isDemo = fals
                 </p>
               )}
             </div>
-          ))
+            )
+          })
         )}
       </div>
 
