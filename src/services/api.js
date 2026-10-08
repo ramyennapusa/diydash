@@ -184,6 +184,62 @@ class Draft2DoneAPI {
     return this.request(`/projects/${projectId}/tasks`);
   }
 
+  // Generate AI task title suggestions for a project
+  async generateTasks(title, description) {
+    return this.request('/ai/generate-tasks', {
+      method: 'POST',
+      body: JSON.stringify({ title, description }),
+    });
+  }
+
+  // Identify purchasable products in an image (Claude only, fast)
+  async identifyProducts(s3Key, imageUrl) {
+    const payload = {};
+    if (s3Key) payload.s3Key = s3Key;
+    else if (imageUrl) payload.imageUrl = imageUrl;
+    return this.request('/ai/suggest-products', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  // Fetch shopping listings for a specific product by search query (SerpAPI)
+  async fetchProductListings(searchQuery) {
+    return this.request('/ai/suggest-products', {
+      method: 'POST',
+      body: JSON.stringify({ searchQuery }),
+    });
+  }
+
+  // Identify the product at a click point (Claude only, no SerpAPI — fast first phase).
+  // When imageData (base64 JPEG crop) is provided, Lambda uses it directly instead of
+  // fetching the full image — much more reliable than coordinate-based identification.
+  async identifyAtPoint(s3Key, imageUrl, clickX, clickY, imageData) {
+    const payload = { clickX, clickY, identifyOnly: true };
+    if (imageData) {
+      payload.imageData = imageData;
+    } else if (s3Key) {
+      payload.s3Key = s3Key;
+    } else if (imageUrl) {
+      payload.imageUrl = imageUrl;
+    }
+    return this.request('/ai/suggest-products', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
+  // Identify the product at a click point and fetch shopping listings in one call
+  async identifyAndShopAtPoint(s3Key, imageUrl, clickX, clickY) {
+    const payload = { clickX, clickY };
+    if (s3Key) payload.s3Key = s3Key;
+    else if (imageUrl) payload.imageUrl = imageUrl;
+    return this.request('/ai/suggest-products', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  }
+
   // Update task completion
   async toggleTask(projectId, taskId) {
     const project = await this.getProject(projectId);

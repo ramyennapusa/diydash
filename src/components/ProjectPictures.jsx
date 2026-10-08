@@ -14,8 +14,15 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false, i
   const [uploadError, setUploadError] = useState(null)
   const [deletingPictureId, setDeletingPictureId] = useState(null)
   const [showImageMenu, setShowImageMenu] = useState(false)
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const [selectedPictureIds, setSelectedPictureIds] = useState(new Set())
+  const [deletingSelected, setDeletingSelected] = useState(false)
   const [zoomLevel, setZoomLevel] = useState(1)
+  const [isShoppingMode, setIsShoppingMode] = useState(false)
+  const [shopPin, setShopPin] = useState(null)       // { x, y } as 0-1 floats
+  const [shopResult, setShopResult] = useState(null) // null | {loading:true} | {product,listings} | {error}
   const clickZoomTimeoutRef = useRef(null)
+  const shopRequestIdRef = useRef(0)
   const [uploadFormData, setUploadFormData] = useState({
     files: [],
     captions: {},
@@ -81,7 +88,112 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false, i
   const handleCloseModal = () => {
     setSelectedImage(null)
     setShowImageMenu(false)
-    setZoomLevel(1) // Reset zoom when closing
+    setZoomLevel(1)
+    setIsShoppingMode(false)
+    setShopPin(null)
+    setShopResult(null)
+  }
+
+  const handleToggleShoppingMode = (e) => {
+    e.stopPropagation()
+    setIsShoppingMode(prev => {
+      if (prev) { setShopPin(null); setShopResult(null) }
+      return !prev
+    })
+  }
+
+  const cropImageAtClick = (img, clickX, clickY) => {
+    try {
+      const natW = img.naturalWidth
+      const natH = img.naturalHeight
+      if (!natW || !natH) return null
+      const cropSize = Math.min(natW, natH) * 0.4
+      const cropLeft = Math.max(0, Math.min(natW - cropSize, clickX * natW - cropSize / 2))
+      const cropTop = Math.max(0, Math.min(natH - cropSize, clickY * natH - cropSize / 2))
+      const outSize = Math.min(Math.round(cropSize), 800)
+      const canvas = document.createElement('canvas')
+      canvas.width = outSize
+      canvas.height = outSize
+      const ctx = canvas.getContext('2d')
+      ctx.drawImage(img, cropLeft, cropTop, cropSize, cropSize, 0, 0, outSize, outSize)
+      return canvas.toDataURL('image/jpeg', 0.85).split(',')[1]
+    } catch {
+      return null  // Canvas tainted (CORS) — fall back to coordinate-based identification
+    }
+  }
+
+  const handleImageShopClick = async (e) => {
+    if (!isShoppingMode) return
+    e.stopPropagation()
+    const img = e.currentTarget
+    const rect = img.getBoundingClientRect()
+
+    // object-fit: contain adds letterbox margins — calculate actual rendered image bounds
+    const naturalW = img.naturalWidth || rect.width
+    const naturalH = img.naturalHeight || rect.height
+    const elementAspect = rect.width / rect.height
+    const imageAspect = naturalW / naturalH
+    let renderedW, renderedH, offsetX, offsetY
+    if (imageAspect > elementAspect) {
+      renderedW = rect.width
+      renderedH = rect.width / imageAspect
+      offsetX = 0
+      offsetY = (rect.height - renderedH) / 2
+    } else {
+      renderedH = rect.height
+      renderedW = rect.height * imageAspect
+      offsetX = (rect.width - renderedW) / 2
+      offsetY = 0
+    }
+    const clickX = Math.max(0, Math.min(1, (e.clientX - rect.left - offsetX) / renderedW))
+    const clickY = Math.max(0, Math.min(1, (e.clientY - rect.top - offsetY) / renderedH))
+    // Pin is positioned inside the container (full element box), so convert back to container fractions
+    const pinX = (offsetX + clickX * renderedW) / rect.width
+    const pinY = (offsetY + clickY * renderedH) / rect.height
+    setShopPin({ x: pinX, y: pinY })
+    setShopResult({ loading: true })
+
+    // Stamp this request so stale responses from earlier clicks are ignored
+    shopRequestIdRef.current += 1
+    const requestId = shopRequestIdRef.current
+
+    // Crop the image around the click point — Claude identifies what's in the crop rather than
+    // guessing at percentage coordinates, which is far more reliable
+    const imageData = cropImageAtClick(img, clickX, clickY)
+
+    const picture = selectedImage
+    const isHttpUrl = picture.url?.startsWith('http://') || picture.url?.startsWith('https://')
+    const s3Key = isHttpUrl ? null : (picture.key || picture.url)
+    const imageUrl = isHttpUrl ? picture.url : null
+
+    let product
+    try {
+      // Phase 1: Claude identifies the product (~5-8s)
+      const identified = await apiClient.identifyAtPoint(s3Key, imageUrl, clickX, clickY, imageData)
+      if (shopRequestIdRef.current !== requestId) return  // a newer click superseded this one
+      product = identified.product
+      if (!product) {
+        setShopResult({ product: null })
+        return
+      }
+      setShopResult({ product, listings: null, loadingListings: true })
+    } catch (err) {
+      if (shopRequestIdRef.current !== requestId) return
+      console.error('identifyAtPoint error:', err)
+      setShopResult({ error: 'Could not identify product. Please try again.' })
+      return
+    }
+
+    try {
+      // Phase 2: SerpAPI listings
+      const result = await apiClient.fetchProductListings(product.searchQuery)
+      if (shopRequestIdRef.current !== requestId) return
+      setShopResult({ product, listings: result.listings || [] })
+    } catch (err) {
+      if (shopRequestIdRef.current !== requestId) return
+      console.error('fetchProductListings error:', err)
+      setShopResult({ product, listings: [] })
+    }
   }
 
   // Handle zoom in
@@ -136,13 +248,15 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false, i
   const handlePreviousImage = (e) => {
     e.stopPropagation()
     const currentIndex = getCurrentImageIndex()
+    setIsShoppingMode(false)
+    setShopPin(null)
+    setShopResult(null)
     if (currentIndex > 0) {
       setSelectedImage(pictures[currentIndex - 1])
-      setZoomLevel(1) // Reset zoom when navigating
+      setZoomLevel(1)
     } else if (pictures.length > 0) {
-      // Loop to last image
       setSelectedImage(pictures[pictures.length - 1])
-      setZoomLevel(1) // Reset zoom when navigating
+      setZoomLevel(1)
     }
   }
 
@@ -150,13 +264,15 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false, i
   const handleNextImage = (e) => {
     e.stopPropagation()
     const currentIndex = getCurrentImageIndex()
+    setIsShoppingMode(false)
+    setShopPin(null)
+    setShopResult(null)
     if (currentIndex < pictures.length - 1) {
       setSelectedImage(pictures[currentIndex + 1])
-      setZoomLevel(1) // Reset zoom when navigating
+      setZoomLevel(1)
     } else if (pictures.length > 0) {
-      // Loop to first image
       setSelectedImage(pictures[0])
-      setZoomLevel(1) // Reset zoom when navigating
+      setZoomLevel(1)
     }
   }
 
@@ -180,27 +296,30 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false, i
       else if (e.key === 'ArrowLeft') {
         e.preventDefault()
         const currentIndex = pictures.findIndex(pic => pic.id === selectedImage.id)
+        setIsShoppingMode(false); setShopPin(null); setShopResult(null)
         if (currentIndex > 0) {
           setSelectedImage(pictures[currentIndex - 1])
-          setZoomLevel(1) // Reset zoom when navigating
+          setZoomLevel(1)
         } else if (pictures.length > 0) {
           setSelectedImage(pictures[pictures.length - 1])
-          setZoomLevel(1) // Reset zoom when navigating
+          setZoomLevel(1)
         }
       } else if (e.key === 'ArrowRight') {
         e.preventDefault()
         const currentIndex = pictures.findIndex(pic => pic.id === selectedImage.id)
+        setIsShoppingMode(false); setShopPin(null); setShopResult(null)
         if (currentIndex < pictures.length - 1) {
           setSelectedImage(pictures[currentIndex + 1])
-          setZoomLevel(1) // Reset zoom when navigating
+          setZoomLevel(1)
         } else if (pictures.length > 0) {
           setSelectedImage(pictures[0])
-          setZoomLevel(1) // Reset zoom when navigating
+          setZoomLevel(1)
         }
       } else if (e.key === 'Escape') {
         setSelectedImage(null)
         setShowImageMenu(false)
-        setZoomLevel(1) // Reset zoom when closing
+        setZoomLevel(1)
+        setIsShoppingMode(false); setShopPin(null); setShopResult(null)
       }
     }
 
@@ -475,6 +594,54 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false, i
     }
   }
 
+  const handleEnterSelectionMode = () => {
+    setIsSelectionMode(true)
+    setSelectedPictureIds(new Set())
+  }
+
+  const handleExitSelectionMode = () => {
+    setIsSelectionMode(false)
+    setSelectedPictureIds(new Set())
+  }
+
+  const handleToggleSelectPicture = (pictureId) => {
+    setSelectedPictureIds(prev => {
+      const next = new Set(prev)
+      if (next.has(pictureId)) next.delete(pictureId)
+      else next.add(pictureId)
+      return next
+    })
+  }
+
+  const handleSelectAll = () => {
+    if (selectedPictureIds.size === sortedPictures.length) {
+      setSelectedPictureIds(new Set())
+    } else {
+      setSelectedPictureIds(new Set(sortedPictures.map(p => p.id)))
+    }
+  }
+
+  const handleDeleteSelected = async () => {
+    if (selectedPictureIds.size === 0) return
+    const count = selectedPictureIds.size
+    if (!window.confirm(`Delete ${count} selected image${count !== 1 ? 's' : ''}? This cannot be undone.`)) return
+
+    setDeletingSelected(true)
+    try {
+      // Fetch project once, filter out all selected ids in one update
+      const project = await apiClient.getProject(projectId)
+      const remaining = (project.pictures || []).filter(p => !selectedPictureIds.has(p.id))
+      await apiClient.updateProject(projectId, { pictures: remaining })
+      handleExitSelectionMode()
+      if (onUpdate) onUpdate(false)
+    } catch (err) {
+      console.error('Failed to delete pictures:', err)
+      setUploadError(err.message || 'Failed to delete pictures. Please try again.')
+    } finally {
+      setDeletingSelected(false)
+    }
+  }
+
   const hasPictures = pictures && pictures.length > 0
 
   if (isParentLoading && !hasPictures && !showUploadForm) {
@@ -523,20 +690,69 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false, i
         )}
       </div>
 
+      {!isDemo && hasPictures && !isSelectionMode && (
+        <div className="pictures-select-row">
+          <button className="select-pictures-link" onClick={handleEnterSelectionMode}>
+            Select
+          </button>
+        </div>
+      )}
+
+      {isSelectionMode && (
+        <div className="pictures-selection-bar">
+          <span className="pictures-selection-count">
+            {selectedPictureIds.size} selected
+          </span>
+          <div className="pictures-selection-actions">
+            <button
+              className="selection-bar-btn selection-bar-btn--secondary"
+              onClick={handleSelectAll}
+            >
+              {selectedPictureIds.size === sortedPictures.length ? 'Deselect All' : 'Select All'}
+            </button>
+            <button
+              className="selection-bar-btn selection-bar-btn--danger"
+              onClick={handleDeleteSelected}
+              disabled={selectedPictureIds.size === 0 || deletingSelected}
+            >
+              {deletingSelected ? 'Deleting…' : `Delete (${selectedPictureIds.size})`}
+            </button>
+            <button
+              className="selection-bar-btn selection-bar-btn--cancel"
+              onClick={handleExitSelectionMode}
+              disabled={deletingSelected}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="pictures-grid">
-        {sortedPictures.map((picture) => (
-          <div key={picture.id} className="picture-card">
-            <div 
+        {sortedPictures.map((picture) => {
+          const isSelected = selectedPictureIds.has(picture.id)
+          return (
+          <div
+            key={picture.id}
+            className={`picture-card${isSelected ? ' picture-card--selected' : ''}`}
+          >
+            <div
               className="picture-container"
-              onClick={() => !imageErrors[picture.id] && handleImageClick(picture)}
-              style={{ cursor: imageErrors[picture.id] ? 'default' : 'pointer' }}
+              onClick={() => {
+                if (isSelectionMode) {
+                  handleToggleSelectPicture(picture.id)
+                } else if (!imageErrors[picture.id]) {
+                  handleImageClick(picture)
+                }
+              }}
+              style={{ cursor: isSelectionMode ? 'pointer' : (imageErrors[picture.id] ? 'default' : 'pointer') }}
             >
               {imageLoading[picture.id] && (
                 <div className="image-loading">
                   <div className="loading-spinner"></div>
                 </div>
               )}
-              
+
               {imageErrors[picture.id] ? (
                 <div className="image-error">
                   <span className="error-icon">🖼️</span>
@@ -559,41 +775,50 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false, i
                   <p>Invalid image URL</p>
                 </div>
               )}
-              
-              <div className="picture-overlay">
-                <button
-                  className="view-button"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    handleImageClick(picture)
-                  }}
-                  disabled={imageErrors[picture.id]}
-                >
-                  🔍 View
-                </button>
-                {!isDemo && (
+
+              {isSelectionMode ? (
+                <div className="picture-select-overlay">
+                  <div className={`picture-checkbox${isSelected ? ' picture-checkbox--checked' : ''}`}>
+                    {isSelected && <span className="picture-checkbox-check">✓</span>}
+                  </div>
+                </div>
+              ) : (
+                <div className="picture-overlay">
                   <button
-                    className="delete-button"
+                    className="view-button"
                     onClick={(e) => {
                       e.stopPropagation()
-                      handleDeletePicture(picture.id)
+                      handleImageClick(picture)
                     }}
-                    disabled={deletingPictureId === picture.id || imageErrors[picture.id]}
-                    title="Delete picture"
+                    disabled={imageErrors[picture.id]}
                   >
-                    {deletingPictureId === picture.id ? '⏳' : '×'}
+                    🔍 View
                   </button>
-                )}
-              </div>
+                  {!isDemo && (
+                    <button
+                      className="delete-button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        handleDeletePicture(picture.id)
+                      }}
+                      disabled={deletingPictureId === picture.id || imageErrors[picture.id]}
+                      title="Delete picture"
+                    >
+                      {deletingPictureId === picture.id ? '⏳' : '×'}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
-            
+
             {picture.caption && picture.caption.trim() !== '' && picture.caption.trim() !== 'Uploaded picture' && (
               <div className="picture-info">
                 <p className="picture-caption">{picture.caption}</p>
               </div>
             )}
           </div>
-        ))}
+          )
+        })}
       </div>
 
       {/* Upload Form Modal */}
@@ -726,7 +951,16 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false, i
               )}
             </div>
 
-            <button 
+            <button
+              className={`lightbox-products-button${isShoppingMode ? ' lightbox-products-button--active' : ''}`}
+              onClick={handleToggleShoppingMode}
+              title={isShoppingMode ? 'Exit shopping mode' : 'Click a product in the image to shop for it'}
+              aria-label="Toggle shopping mode"
+            >
+              <span style={{ fontSize: '15px', filter: 'brightness(0) invert(1)', lineHeight: 1 }}>🛒</span>
+            </button>
+
+            <button
               className="lightbox-search-button"
               onClick={(e) => handleSearchImage(e, selectedImage.url)}
               title={(selectedImage.key || selectedImage.url) && !selectedImage.url?.startsWith('http') ? 'Reverse image search not available for app images' : 'Search image origin (opens Google Images)'}
@@ -754,34 +988,115 @@ const ProjectPictures = ({ pictures = [], projectId, onUpdate, isDemo = false, i
               </>
             )}
             
-            <div className="lightbox-image-wrapper">
-              <div className="lightbox-image-container">
-                <ResolvedImage
-                  s3Key={selectedImage.key}
-                  fallbackUrl={selectedImage.url}
-                  alt={selectedImage.caption || 'Project picture'}
-                  className="lightbox-image"
-                  style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s ease' }}
-                  onClick={handleImageClickZoom}
-                  onDoubleClick={handleImageDoubleClickZoom}
-                  onContextMenu={handleImageRightClickZoom}
-                  title="Click to zoom in, double-click to reset, right-click to zoom out"
-                />
+            <div className="lightbox-main-row">
+              <div className={`lightbox-image-wrapper${isShoppingMode ? ' lightbox-image-wrapper--shopping' : ''}`}>
+                <div className="lightbox-image-container">
+                  <ResolvedImage
+                    s3Key={selectedImage.key}
+                    fallbackUrl={selectedImage.url}
+                    alt={selectedImage.caption || 'Project picture'}
+                    className="lightbox-image"
+                    style={{ transform: `scale(${zoomLevel})`, transition: 'transform 0.2s ease' }}
+                    onClick={isShoppingMode ? handleImageShopClick : handleImageClickZoom}
+                    onDoubleClick={isShoppingMode ? undefined : handleImageDoubleClickZoom}
+                    onContextMenu={isShoppingMode ? undefined : handleImageRightClickZoom}
+                    title={isShoppingMode ? 'Click on a product to identify and shop for it' : 'Click to zoom in, double-click to reset, right-click to zoom out'}
+                  />
+                  {shopPin && (
+                    <div
+                      className="shop-pin"
+                      style={{ left: `${shopPin.x * 100}%`, top: `${shopPin.y * 100}%` }}
+                    />
+                  )}
+                </div>
               </div>
+
+              {(isShoppingMode || shopResult) && (
+                <div className="lightbox-products-panel" onClick={(e) => e.stopPropagation()}>
+                  <div className="lightbox-products-header">
+                    <span className="lightbox-products-title">
+                      {shopResult?.loading ? 'Identifying...' :
+                       shopResult?.error ? 'Error' :
+                       shopResult?.product ? shopResult.product.name :
+                       shopResult?.product === null ? 'No Product Found' :
+                       'Shopping Mode'}
+                    </span>
+                    <button
+                      className="lightbox-products-close"
+                      onClick={() => { setIsShoppingMode(false); setShopPin(null); setShopResult(null) }}
+                      aria-label="Close"
+                    >✕</button>
+                  </div>
+                  {!shopResult && (
+                    <p className="lightbox-products-empty" style={{ padding: '1rem', textAlign: 'center', fontSize: '0.8rem' }}>
+                      Click on any product in the image
+                    </p>
+                  )}
+                  {shopResult?.loading && (
+                    <p className="lightbox-products-empty">Identifying product and finding listings…</p>
+                  )}
+                  {shopResult?.error && (
+                    <p className="lightbox-products-empty">{shopResult.error}</p>
+                  )}
+                  {shopResult && !shopResult.loading && !shopResult.error && shopResult.product === null && (
+                    <p className="lightbox-products-empty">No product found at that location</p>
+                  )}
+                  {shopResult?.product && (
+                    <div className="lightbox-products-list">
+                      <div className="lightbox-product-item">
+                        <div className="lightbox-product-desc">{shopResult.product.description}</div>
+                        {shopResult.loadingListings && (
+                          <div className="lightbox-products-empty">Finding listings…</div>
+                        )}
+                        {Array.isArray(shopResult.listings) && shopResult.listings.length === 0 && (
+                          <div className="lightbox-products-empty">No listings found</div>
+                        )}
+                        <div className="lightbox-product-listings">
+                          {(shopResult.listings || []).map((listing, lIdx) => (
+                            <a
+                              key={lIdx}
+                              href={listing.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="lightbox-listing-card"
+                            >
+                              <div className="lightbox-listing-thumb">
+                                {listing.image
+                                  ? <img src={listing.image} alt={listing.title} />
+                                  : <span className="lightbox-listing-thumb-placeholder">🛒</span>
+                                }
+                              </div>
+                              <div className="lightbox-listing-info">
+                                <div className="lightbox-listing-title">{listing.title}</div>
+                                {listing.price && (
+                                  <div className="lightbox-listing-price">{listing.price}</div>
+                                )}
+                                {listing.source && (
+                                  <div className="lightbox-listing-source">{listing.source}</div>
+                                )}
+                              </div>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
-            
+
             {pictures.length > 1 && (
               <div className="lightbox-counter">
                 {getCurrentImageIndex() + 1} / {pictures.length}
               </div>
             )}
-            
+
             {zoomLevel !== 1 && (
               <div className="lightbox-zoom-indicator">
                 {Math.round(zoomLevel * 100)}%
               </div>
             )}
-            
+
             {selectedImage.caption && selectedImage.caption.trim() !== '' && selectedImage.caption.trim() !== 'Uploaded picture' && (
               <div className="lightbox-info">
                 <h4 className="lightbox-caption">{selectedImage.caption}</h4>

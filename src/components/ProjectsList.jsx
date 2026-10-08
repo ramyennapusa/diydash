@@ -262,10 +262,26 @@ function ProjectsList() {
     try {
       setIsCreating(true)
       setError(null)
-      
+
+      const { suggestedTaskTitles, ...createPayload } = projectData
+
       // Call API to create project (API will handle S3 upload if imageData is provided)
-      const newProject = await apiClient.createProject(projectData)
-      
+      const newProject = await apiClient.createProject(createPayload)
+
+      // Add AI-suggested tasks in parallel if any were selected
+      if (suggestedTaskTitles && suggestedTaskTitles.length > 0) {
+        await Promise.all(
+          suggestedTaskTitles.map((title, index) =>
+            apiClient.addTask(newProject.id, {
+              title,
+              description: '',
+              completed: false,
+              order: index,
+            })
+          )
+        )
+      }
+
       // Add the new project to the list
       setProjects(prev => [newProject, ...prev])
       // Close modal and take user into the new project to add tasks or pictures

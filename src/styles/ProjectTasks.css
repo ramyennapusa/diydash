@@ -184,6 +184,116 @@
   gap: 1rem;
 }
 
+/* Selection Bar */
+.tasks-selection-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0 0.75rem;
+  flex-wrap: wrap;
+}
+
+.tasks-select-btn {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tasks-select-btn:hover {
+  color: #374151;
+  border-color: #9ca3af;
+  background: #f9fafb;
+}
+
+.tasks-select-all {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+  user-select: none;
+}
+
+.tasks-select-all input[type="checkbox"] {
+  width: 15px;
+  height: 15px;
+  accent-color: #b18458;
+  cursor: pointer;
+}
+
+.tasks-selected-count {
+  font-size: 0.8rem;
+  color: #6b7280;
+  flex: 1;
+}
+
+.tasks-delete-selected-btn {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: white;
+  background: #dc2626;
+  border: none;
+  border-radius: 0.375rem;
+  padding: 0.3rem 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.tasks-delete-selected-btn:hover:not(:disabled) {
+  background: #b91c1c;
+}
+
+.tasks-delete-selected-btn:disabled {
+  background: #fca5a5;
+  cursor: not-allowed;
+}
+
+.tasks-cancel-select-btn {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #6b7280;
+  background: none;
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.3rem 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tasks-cancel-select-btn:hover {
+  color: #374151;
+  border-color: #9ca3af;
+}
+
+/* Selection checkbox on task item */
+.task-select-checkbox-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  flex-shrink: 0;
+}
+
+.task-select-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: #b18458;
+  cursor: pointer;
+}
+
+.task-drag-wrapper.task-selected .task-item {
+  background: #fdf6ee;
+  border-color: #b18458;
+}
+
 /* Drag and Drop Styles */
 .task-drag-wrapper {
   cursor: move;

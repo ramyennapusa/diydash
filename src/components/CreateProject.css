@@ -273,6 +273,60 @@
   background: var(--diy-gray-300, #d1d5db);
 }
 
+/* Suggest Tasks Button */
+.btn-suggest-tasks {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  font-size: 0.85rem;
+  border: 1px solid var(--diy-primary, #3b82f6);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--diy-primary, #3b82f6);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-suggest-tasks:hover:not(:disabled) {
+  background: var(--diy-primary, #3b82f6);
+  color: white;
+}
+
+.btn-suggest-tasks:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Suggested Tasks Checklist */
+.suggested-tasks-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+  padding: 0.75rem;
+  background: var(--diy-gray-50, #f9fafb);
+  border: 1px solid var(--diy-gray-200, #e5e7eb);
+  border-radius: 8px;
+}
+
+.suggested-task-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.9rem;
+  color: var(--diy-text-primary, #111827);
+  cursor: pointer;
+}
+
+.suggested-task-item input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+  accent-color: var(--diy-primary, #3b82f6);
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
   .create-project-modal {

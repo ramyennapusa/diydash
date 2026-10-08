@@ -22,7 +22,17 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
   const [editingTaskId, setEditingTaskId] = useState(null)
   const [editTaskText, setEditTaskText] = useState('')
   const [savingEditTaskId, setSavingEditTaskId] = useState(null)
+  const [isSelectionMode, setIsSelectionMode] = useState(false)
+  const [selectedTaskIds, setSelectedTaskIds] = useState(new Set())
+  const [deletingSelected, setDeletingSelected] = useState(false)
   const editorRef = useRef(null)
+
+  // Return focus to the task input after each task is saved
+  useEffect(() => {
+    if (!creating && editorRef.current) {
+      editorRef.current.focus()
+    }
+  }, [creating])
 
   const taskToPayload = (task) => ({
     id: task.id,
@@ -152,8 +162,11 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
                 : t
             ).sort((a, b) => (a.order || 0) - (b.order || 0))
           )
+          // Silently refresh parent so project.tasks stays current (tab switch remounts this component)
+          if (onUpdate) onUpdate(false)
         } else {
           await fetchTasks()
+          if (onUpdate) onUpdate(false)
         }
       } catch (err) {
         console.error('Failed to create task:', err)
@@ -315,29 +328,61 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
       // Update backend - remove task and reorder remaining tasks
       const updatedProjectTasks = reorderedTasks.map(taskToPayload)
 
-      console.log('Sending updated tasks to backend:', updatedProjectTasks.map(t => ({ id: t.id, title: t.title })))
-      const result = await apiClient.updateProject(projectId, { tasks: updatedProjectTasks })
-      console.log('Update project result:', result)
-      
-      // Small delay to ensure backend deletion completes
-      await new Promise(resolve => setTimeout(resolve, 500))
-      
-      // Refresh tasks to ensure sync
-      await fetchTasks()
-      
-      if (onUpdate) {
-        onUpdate()
-      }
+      await apiClient.updateProject(projectId, { tasks: updatedProjectTasks })
+      if (onUpdate) onUpdate(false)
     } catch (err) {
       console.error('Failed to delete task:', err)
-      console.error('Error details:', {
-        message: err.message,
-        status: err.status,
-        data: err.data
-      })
-      // Revert on error
       await fetchTasks()
       alert(err.message || 'Failed to delete task. Please try again.')
+    }
+  }
+
+  const handleEnterSelectionMode = () => {
+    setIsSelectionMode(true)
+    setSelectedTaskIds(new Set())
+  }
+
+  const handleExitSelectionMode = () => {
+    setIsSelectionMode(false)
+    setSelectedTaskIds(new Set())
+  }
+
+  const handleToggleSelectTask = (taskId) => {
+    setSelectedTaskIds(prev => {
+      const next = new Set(prev)
+      if (next.has(taskId)) next.delete(taskId)
+      else next.add(taskId)
+      return next
+    })
+  }
+
+  const handleSelectAll = () => {
+    if (selectedTaskIds.size === sortedTasks.length) {
+      setSelectedTaskIds(new Set())
+    } else {
+      setSelectedTaskIds(new Set(sortedTasks.map(t => t.id)))
+    }
+  }
+
+  const handleDeleteSelected = async () => {
+    if (selectedTaskIds.size === 0 || !projectId) return
+    if (!window.confirm(`Delete ${selectedTaskIds.size} task${selectedTaskIds.size !== 1 ? 's' : ''}?`)) return
+
+    setDeletingSelected(true)
+    try {
+      const remaining = tasks.filter(t => !selectedTaskIds.has(t.id))
+      const reordered = remaining.map((t, i) => ({ ...t, order: i + 1 }))
+      setTasks(reordered)
+      setIsSelectionMode(false)
+      setSelectedTaskIds(new Set())
+      await apiClient.updateProject(projectId, { tasks: reordered.map(taskToPayload) })
+      if (onUpdate) onUpdate(false)
+    } catch (err) {
+      console.error('Failed to delete selected tasks:', err)
+      await fetchTasks()
+      alert(err.message || 'Failed to delete tasks. Please try again.')
+    } finally {
+      setDeletingSelected(false)
     }
   }
 
@@ -397,27 +442,9 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
       // Update each task's order via the project update endpoint
       // The backend should handle syncing to the tasks table
       const updatedProjectTasks = updatedTasks.map(taskToPayload)
-      
-      console.log('Updating task order:', updatedProjectTasks.map(t => ({ id: t.id, order: t.order })))
-      
-      const result = await apiClient.updateProject(projectId, { tasks: updatedProjectTasks })
-      console.log('Task order update result:', result)
-      
-      // Verify the update was successful by checking the response
-      if (!result) {
-        throw new Error('Update returned no result')
-      }
-      
-      // Don't refresh - state is already updated locally
-      // Don't call onUpdate for reordering to avoid parent component refresh
+      await apiClient.updateProject(projectId, { tasks: updatedProjectTasks })
     } catch (err) {
       console.error('Failed to update task order:', err)
-      console.error('Error details:', {
-        message: err.message,
-        status: err.status,
-        data: err.data
-      })
-      // Revert on error - only fetch if update failed
       await fetchTasks()
       alert(`Failed to update task order: ${err.message || 'Unknown error'}. Please try again.`)
     }
@@ -579,6 +606,39 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
 
       {/* Tasks List */}
       <div className="tasks-list">
+        {!isDemo && sortedTasks.length > 0 && (
+          <div className="tasks-selection-bar">
+            {isSelectionMode ? (
+              <>
+                <label className="tasks-select-all">
+                  <input
+                    type="checkbox"
+                    checked={selectedTaskIds.size === sortedTasks.length && sortedTasks.length > 0}
+                    onChange={handleSelectAll}
+                  />
+                  {selectedTaskIds.size === sortedTasks.length ? 'Deselect All' : 'Select All'}
+                </label>
+                <span className="tasks-selected-count">
+                  {selectedTaskIds.size > 0 ? `${selectedTaskIds.size} selected` : ''}
+                </span>
+                <button
+                  className="tasks-delete-selected-btn"
+                  onClick={handleDeleteSelected}
+                  disabled={selectedTaskIds.size === 0 || deletingSelected}
+                >
+                  {deletingSelected ? 'Deleting…' : `Delete${selectedTaskIds.size > 0 ? ` (${selectedTaskIds.size})` : ''}`}
+                </button>
+                <button className="tasks-cancel-select-btn" onClick={handleExitSelectionMode}>
+                  Cancel
+                </button>
+              </>
+            ) : (
+              <button className="tasks-select-btn" onClick={handleEnterSelectionMode}>
+                Select
+              </button>
+            )}
+          </div>
+        )}
         <div className="category-tasks">
           {sortedTasks.length === 0 ? (
             <div className="tasks-empty">
@@ -591,13 +651,13 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
             sortedTasks.map((task, index) => (
               <div
                 key={task.id}
-                draggable
-                onDragStart={(e) => handleDragStart(e, task.id)}
-                onDragEnd={handleDragEnd}
-                onDragOver={(e) => handleDragOver(e, index)}
-                onDragLeave={handleDragLeave}
-                onDrop={(e) => handleDrop(e, index)}
-                className={`task-drag-wrapper ${draggedTaskId === task.id ? 'dragging' : ''} ${draggedOverIndex === index ? 'drag-over' : ''}`}
+                draggable={!isSelectionMode}
+                onDragStart={!isSelectionMode ? (e) => handleDragStart(e, task.id) : undefined}
+                onDragEnd={!isSelectionMode ? handleDragEnd : undefined}
+                onDragOver={!isSelectionMode ? (e) => handleDragOver(e, index) : undefined}
+                onDragLeave={!isSelectionMode ? handleDragLeave : undefined}
+                onDrop={!isSelectionMode ? (e) => handleDrop(e, index) : undefined}
+                className={`task-drag-wrapper ${draggedTaskId === task.id ? 'dragging' : ''} ${draggedOverIndex === index ? 'drag-over' : ''} ${isSelectionMode && selectedTaskIds.has(task.id) ? 'task-selected' : ''}`}
                 style={isDemo && index === 0 ? { position: 'relative' } : undefined}
               >
                 {isDemo && index === 0 && (
@@ -623,6 +683,9 @@ const ProjectTasks = ({ tasks: initialTasks = [], projectId, onUpdate, onStatusU
                   onAssignDropdownClose={() => setAssignDropdownTaskId(null)}
                   isAssigning={assigningTaskId === task.id}
                   isDemo={isDemo}
+                  isSelectionMode={isSelectionMode}
+                  isSelected={selectedTaskIds.has(task.id)}
+                  onSelect={() => handleToggleSelectTask(task.id)}
                 />
               </div>
             ))
@@ -773,7 +836,10 @@ const TaskItem = ({
   onAssignDropdownToggle,
   onAssignDropdownClose,
   isAssigning,
-  isDemo = false
+  isDemo = false,
+  isSelectionMode = false,
+  isSelected = false,
+  onSelect
 }) => {
   const assignWrapperRef = useRef(null)
   const skipBlurSaveRef = useRef(false)
@@ -792,25 +858,39 @@ const TaskItem = ({
   }, [assignDropdownOpen, onAssignDropdownClose])
 
   return (
-    <div className={`task-item ${isCompleted ? 'completed' : ''}`}>
-      <div className="task-drag-handle">⋮⋮</div>
-      <div className="task-checkbox-container">
-        <input
-          type="checkbox"
-          id={`task-${task.id}`}
-          checked={isCompleted}
-          onChange={isDemo ? undefined : onToggle}
-          readOnly={isDemo}
-          className="task-checkbox"
-        />
-        <label htmlFor={`task-${task.id}`} className="checkbox-label">
-          <span className="checkmark">✓</span>
-        </label>
-      </div>
-      
+    <div className={`task-item ${isCompleted ? 'completed' : ''}`} onClick={isSelectionMode ? onSelect : undefined} style={isSelectionMode ? { cursor: 'pointer' } : undefined}>
+      {isSelectionMode ? (
+        <div className="task-select-checkbox-container">
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={onSelect}
+            onClick={e => e.stopPropagation()}
+            className="task-select-checkbox"
+          />
+        </div>
+      ) : (
+        <>
+          <div className="task-drag-handle">⋮⋮</div>
+          <div className="task-checkbox-container">
+            <input
+              type="checkbox"
+              id={`task-${task.id}`}
+              checked={isCompleted}
+              onChange={isDemo ? undefined : onToggle}
+              readOnly={isDemo}
+              className="task-checkbox"
+            />
+            <label htmlFor={`task-${task.id}`} className="checkbox-label">
+              <span className="checkmark">✓</span>
+            </label>
+          </div>
+        </>
+      )}
+
       <div
         className="task-content"
-        onClick={() => !isDemo && !isCompleted && !isEditing && onEditStart()}
+        onClick={() => !isSelectionMode && !isDemo && !isCompleted && !isEditing && onEditStart()}
       >
         <div className="task-header">
           {isEditing ? (
@@ -856,7 +936,7 @@ const TaskItem = ({
         <p className="task-description">{task.description}</p>
       </div>
 
-      {isShared && !isEditing && (
+      {isShared && !isEditing && !isSelectionMode && (
         <div className="task-assign-wrapper" ref={assignWrapperRef}>
           {assignDropdownOpen && (
             <div className="task-assign-dropdown" role="listbox">
@@ -897,7 +977,7 @@ const TaskItem = ({
       )}
 
 
-      {!isDemo && (
+      {!isDemo && !isSelectionMode && (
         <button
           className="task-delete-button"
           onClick={onDelete}

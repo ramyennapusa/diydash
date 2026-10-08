@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import apiClient from '../services/api'
 import './CreateProject.css'
 
 const DEFAULT_PROJECT_IMAGE = '/draft2done-login-bg.png'
@@ -13,6 +14,10 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
   const [previewImage, setPreviewImage] = useState(null)
   const [errors, setErrors] = useState({})
   const [submitError, setSubmitError] = useState(null)
+  const [suggestedTasks, setSuggestedTasks] = useState([])
+  const [loadingAI, setLoadingAI] = useState(false)
+  const [selectedTitles, setSelectedTitles] = useState(new Set())
+  const [aiError, setAiError] = useState(null)
 
   const handleChange = (e) => {
     const { name, value } = e.target
@@ -20,8 +25,7 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
       ...prev,
       [name]: value
     }))
-    
-    // Clear error for this field
+
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -29,36 +33,66 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
       }))
     }
 
-    // Update preview if image URL changes
     if (name === 'image' && value) {
       setPreviewImage(value)
     } else if (name === 'image' && !value) {
       setPreviewImage(null)
+    }
+
+    // Clear stale suggestions if title or description changes
+    if (name === 'title' || name === 'description') {
+      setSuggestedTasks([])
+      setSelectedTitles(new Set())
+      setAiError(null)
     }
   }
 
   const handleFileChange = (e) => {
     const file = e.target.files[0]
     if (file) {
-      // Create a local preview URL
       const reader = new FileReader()
       reader.onloadend = () => {
         setPreviewImage(reader.result)
-        // Store the file as base64 data URL for S3 upload
-        // The API will handle uploading to S3
         setFormData(prev => ({
           ...prev,
-          image: reader.result // Store as data URL for preview
+          image: reader.result
         }))
       }
       reader.readAsDataURL(file)
     }
   }
 
+  const handleSuggestTasks = async () => {
+    setLoadingAI(true)
+    setAiError(null)
+    try {
+      const result = await apiClient.generateTasks(formData.title.trim(), formData.description.trim())
+      const tasks = result?.tasks || []
+      setSuggestedTasks(tasks)
+      setSelectedTitles(new Set(tasks))
+    } catch (err) {
+      console.error('generateTasks error:', err)
+      setAiError('Could not generate tasks. Please try again.')
+    } finally {
+      setLoadingAI(false)
+    }
+  }
+
+  const toggleTask = (title) => {
+    setSelectedTitles(prev => {
+      const next = new Set(prev)
+      if (next.has(title)) {
+        next.delete(title)
+      } else {
+        next.add(title)
+      }
+      return next
+    })
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    // Validate form
+
     const newErrors = {}
     if (!formData.title.trim()) {
       newErrors.title = 'Title is required'
@@ -69,34 +103,32 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
       return
     }
 
-    // Prepare project data
     const projectData = {
       title: formData.title.trim(),
       description: (formData.description || '').trim() || '',
       status: formData.status || 'Planning'
     }
 
-    // Handle image: if it's a data URL (from file upload), extract base64 for S3 upload
-    // If it's a regular URL, send it as is
     if (formData.image) {
       if (formData.image.startsWith('data:')) {
-        // It's a data URL from file upload - extract base64 for S3 upload
         const base64Match = formData.image.match(/^data:([^;]+);base64,(.+)$/)
         if (base64Match) {
-          projectData.imageData = base64Match[2] // Base64 string without prefix
+          projectData.imageData = base64Match[2]
           projectData.imageContentType = base64Match[1] || 'image/jpeg'
         }
       } else if (formData.image.trim()) {
-        // It's a regular URL
         projectData.image = formData.image.trim()
       }
+    }
+
+    if (selectedTitles.size > 0) {
+      projectData.suggestedTaskTitles = [...selectedTitles]
     }
 
     try {
       setSubmitError(null)
       if (onCreateProject) {
         await onCreateProject(projectData)
-        // Reset form on success
         setFormData({
           title: '',
           description: '',
@@ -105,6 +137,8 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
         })
         setPreviewImage(null)
         setErrors({})
+        setSuggestedTasks([])
+        setSelectedTitles(new Set())
         onClose()
       }
     } catch (err) {
@@ -121,6 +155,8 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
     })
     setPreviewImage(null)
     setErrors({})
+    setSuggestedTasks([])
+    setSelectedTitles(new Set())
     onClose()
   }
 
@@ -131,7 +167,7 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
       <div className="create-project-modal" onClick={(e) => e.stopPropagation()}>
         <div className="create-project-header">
           <h2>Create New Project</h2>
-          <button 
+          <button
             className="create-project-close"
             onClick={handleCancel}
             aria-label="Close"
@@ -147,16 +183,16 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
               <span>{submitError}</span>
             </div>
           )}
-          
+
           {/* Image Preview Section */}
           <div className="form-section">
             <label htmlFor="image-preview" className="form-label">
               Project Image
             </label>
             <div className="image-preview-container">
-              <img 
-                src={displayImage} 
-                alt="Project preview" 
+              <img
+                src={displayImage}
+                alt="Project preview"
                 className="image-preview"
                 onError={(e) => {
                   e.target.src = DEFAULT_PROJECT_IMAGE
@@ -196,7 +232,38 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
             {errors.title && (
               <span className="error-message">{errors.title}</span>
             )}
+            <button
+              type="button"
+              className="btn-suggest-tasks"
+              onClick={handleSuggestTasks}
+              disabled={!formData.title.trim() || loadingAI}
+            >
+              {loadingAI ? 'Generating...' : '✨ Suggest tasks'}
+            </button>
+            {aiError && (
+              <span className="error-message">{aiError}</span>
+            )}
           </div>
+
+          {/* Suggested Tasks Checklist */}
+          {suggestedTasks.length > 0 && (
+            <div className="form-section">
+              <label className="form-label">Suggested Tasks</label>
+              <p className="form-hint">Uncheck any tasks you don't want.</p>
+              <div className="suggested-tasks-list">
+                {suggestedTasks.map((title) => (
+                  <label key={title} className="suggested-task-item">
+                    <input
+                      type="checkbox"
+                      checked={selectedTitles.has(title)}
+                      onChange={() => toggleTask(title)}
+                    />
+                    <span>{title}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Description */}
           <div className="form-section">
@@ -259,4 +326,3 @@ function CreateProject({ onClose, onCreateProject, isCreating = false }) {
 }
 
 export default CreateProject
-
